@@ -1,6 +1,9 @@
-googletrans
+googletrans==4.0.0-rc1
 awscli
 boto3
+tldextract
 langdetect==1.0.9
 translate==3.6.1
+requests==2.28.2
+boto3==1.26.123
 

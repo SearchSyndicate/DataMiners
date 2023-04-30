@@ -10,7 +10,7 @@ Original file is located at
 """
 
 # install imported Func
-!pip install tldextract
+
 
 ## function to extract info
 def domain_extract(url):

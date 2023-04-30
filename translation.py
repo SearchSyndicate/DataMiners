@@ -44,6 +44,7 @@ def non_api_translation(input_text):
 
 if __name__ == "__main__":
     try:
-        aws_translation(input())
-    except Exception as e:
         non_api_translation(input())
+    except Exception as e:
+        aws_translation(input())
+        

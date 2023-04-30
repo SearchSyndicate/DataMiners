@@ -47,6 +47,7 @@ def get_uuid(query):
                             f"autocompletes?query={query}&collection_ids=organizations&limit=25",
                             headers=headers)
     data = json.loads(response.text)
+    uuid='No results for given query'
     if data['count']== 1:
         uuid = data['entities'][0]['identifier']['uuid']
         similar_companies = (data['entities'][0]['identifier']['value'],
@@ -55,9 +56,7 @@ def get_uuid(query):
         # removing dissimilar companies based on length and characters similarity
         similar_companies = [(i['identifier']['value'],i['short_description']) 
                               for i in data['entities'] 
-                              if name_comparison_score(i['identifier']['value'],query)>0.15]
-    else:
-        uuid='No results for given query'
+                              if name_comparison_score(i['identifier']['value'],query)>0.15]  
         
     return similar_companies, uuid
     
@@ -114,4 +113,5 @@ def get_company_details(api_query):
 if __name__ == '__main__':
     api_query = "Amazon.com, Inc., USA"
     similar_companies, uuid = get_uuid(api_query)
-    data = get_company_details(api_query)
+    if uuid !='No results for given query':
+        data = get_company_details(api_query)
