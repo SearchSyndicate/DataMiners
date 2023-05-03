@@ -54,8 +54,8 @@ def get_uuid(query, comp=True):
     uuid='No results for given query'
     if response.status_code == 200:
         data = json.loads(response.text)
+        uuid = data['entities'][0]['identifier']['uuid']
         if data['count']== 1:
-            uuid = data['entities'][0]['identifier']['uuid']
             similar_companies = [(data['entities'][0]['identifier']['value'],
                                   data['entities'][0]['short_description'])]
         elif data['count']> 1:
