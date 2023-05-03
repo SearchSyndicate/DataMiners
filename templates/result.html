@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Results</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/style.css">
+    <script src="assets/code.js"></script>
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='dont_delete__favicon.png') }}"/>
+    <style>
+        .jumbotron {
+            background: rgb(245,245,245); /* This is for ie8 and below */
+            background: rgba(245,245,245, 0.98);             /* Transparent background */
+            width: 90%;
+        }
+        #container {
+                	background-color: #ffffff;
+                	margin: 0 auto;
+                	padding: 0;
+                	position: fixed;
+                    bottom:0%;
+                    width:100%;
+                }
+        </style>
+  </head>
+   <body>
+      <br>
+    <div class="container main">
+		<div class="jumbotron center-block" id="holder">
+		<header>
+			<div class="container">
+			<h2 class='main_heading'style="color: rgb(46,116,181);"> Global Data Search Engine</h2>
+			<p><h3>Results for your query</h3></p>
+			</div>
+			<div class="results">
+                    <table style="margin: 2px">
+                    {% for key, value in prediction.items() %}
+                       <tr style="background-color: #c1c6ca">
+                        <strong><th style="padding: 1rem"> {{ key }} </th></strong>
+                            <td style="padding: 1rem"> {{ value }} </td>
+                       </tr>
+                    {% endfor %}
+                    </table>     
+                    
+                    {% if image_urls|length > 0 %}
+                    <p><h3>Images</h3></p>
+                    {% for url in image_urls %}
+                    <img src="{{ url }}" style="width:200px;height:200px;margin:5px;">
+                    {% endfor %}   
+                    {% endif %}
+                          
+			</div>
+		</header>
+		</div>
+	</div>
+<!-- Footer -->
+<footer class="page-footer font-small blue">
+
+  <div id="container" class="footer-copyright text-center py-3">
+    <div class="bottom">
+        <p>DataMiners</p>
+    </div>
+  </div>
+
+</footer>
+<!-- Footer -->
+</body>
+</html>

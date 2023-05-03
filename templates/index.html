@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/style.css">
+    <script src="assets/code.js"></script>
+    <title>Data Search</title>
+  </head>
+      <br>
+    <div class="container main">
+  <div class="jumbotron center-block" id="holder">
+        <h2 class='main_heading' style="color: rgb(46,116,181);"> Global Data Search Engine</h2>
+     <p>The model can search: Products/services, based on the Company Name, Country or URL input.<br>
+     <small style="color:#282828"> </small></p>
+      <h5 style="font-weight: 850;">Architecture : Bert, TextBlob, Backend : Flask, Ngrok</h5>
+
+
+    <div class="instructions">
+    <section class="indent-1">
+      <h3>Instructions: </h3>
+      <p>1. Write a name of company and country  then click submit.
+      <small style="color:#282828">It may take upto a minute (maximum) to process text</small>
+      </p>
+      <p>2. You will get a output as a result</p>
+    </section>
+    </div>
+    <form enctype="multipart/form-data" style="border-radius: 8px;" class="form-horizontal" method="POST" action="/predict">
+      <h4>Choose type of search:</h4>
+        <select name="scr_select" class="selectpicker form-control">
+          <option value="With out Images">With out Images</option>
+          <option value="With Images">With Images</option>
+        </select>
+        <h4>Query here:</h4>
+        <input name="text" placeholder="e.g. Amazon, USA">
+        <br><br>
+        <input style="border-radius: 8px;" class="button button5" type="submit">
+    </form>
+    
+  </div>
+</div>
+<br>
+<!-- Footer -->
+<footer class="page-footer font-small blue">
+
+  <div id="container" class="footer-copyright text-center py-3">
+    <div class="bottom">
+      <div class="col" style="text-align: center">
+        <img src="static/teamlogo.png" alt="logo" style='width: 100%; max-width: 250px; border-radius: 100px;'/>
+    </div>
+    </div>
+  </div>
+
+</footer>
+<!-- Footer -->
+  </body>
+</html>
