@@ -113,5 +113,8 @@ def get_company_details(api_query):
 if __name__ == '__main__':
     api_query = "Amazon.com, Inc., USA"
     similar_companies, uuid = get_uuid(api_query)
+    print(similar_companies)
     if uuid !='No results for given query':
         data = get_company_details(api_query)
+        print(data)
+        
