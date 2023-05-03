@@ -72,9 +72,11 @@ def crawl(url):
     global count
     if url in visited_urls or count >= 1000:
         return
-
+    header = {
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
+      "X-Requested-With": "XMLHttpRequest"}
     # Fetch the web page content
-    response = requests.get(url)
+    response = requests.get(url, headers=header)
     if response.status_code == 200:
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(response.content, "html.parser")
