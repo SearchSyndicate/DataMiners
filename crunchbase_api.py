@@ -41,10 +41,11 @@ def name_comparison_score(name1,name2):
             score+=1
     return score/(length_1+length_2)
 
-def get_uuid(query):
+def get_uuid(query, comp=True):
     """
     used for getting 1st returned uuid from API for a given company query
     and all descriptions of resembling companies upto 25
+    Parameter: comp is there to decide whether to use name_comparison_score or not
     """
     response = requests.get(base_api_endpoint+
                             f"autocompletes?query={query}&collection_ids=organizations&limit=25",
@@ -59,15 +60,20 @@ def get_uuid(query):
                                   data['entities'][0]['short_description'])]
         elif data['count']> 1:
             # removing dissimilar companies based on length and characters similarity
-            similar_companies = [(i['identifier']['value'],i['short_description']) 
-                                  for i in data['entities'] 
-                                  if name_comparison_score(i['identifier']['value'],query)>0.15]          
+            if comp:
+                similar_companies = [(i['identifier']['value'],i['short_description']) 
+                                      for i in data['entities'] 
+                                   if name_comparison_score(i['identifier']['value'],query)>0.15]
+            else:
+                [(i['identifier']['value'],i['short_description']) 
+                                     for i in data['entities']]
     return similar_companies, uuid
     
 
 def get_company_details(api_query): 
     """
     returns company details based on an input query using get_uuid()
+    gives location in addition description
     """
     payload = {
         "field_ids": ["identifier", "location_identifiers", "short_description",
@@ -114,19 +120,17 @@ def get_company_details(api_query):
 
 def batch_call_api(df):
     """
-    Function to call crunchbase api 20 times in every minute 
+    Function to call crunchbase api 25 times in every minute 
     max limit is 25
     """
-    # Initialize counter and error list
     errors=[]
     desc_df=pd.DataFrame(columns=['company', 'description'])
-    # Loop through each row in the DataFrame
     for index, row in df.iterrows():
         # Extract the query with company name and country from the DataFrame
         query = input_df.loc[index,'queries']
-        if index % 20 == 0:
-            # Create the API request URL
-            similar_companies, uuid = get_uuid(query)
+        if index % 25 == 0:
+            # Create the API request 
+            similar_companies, uuid = get_uuid(query, comp=False)
     
             # Check if the response was successful
             if similar_companies:
@@ -141,7 +145,7 @@ def batch_call_api(df):
             else:
                 # Add the company to the error list
                 errors.append(query)
-            print("Taking a minute break...")
+            print(f"Taking a minute break...{index/25}")
             time.sleep(60)
     
         # Check if all inputs have been given
