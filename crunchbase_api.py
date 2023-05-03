@@ -12,6 +12,8 @@ if more informations are given like country etc.
 import requests
 import json
 import re
+import pandas as pd
+import time
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 
@@ -42,22 +44,24 @@ def name_comparison_score(name1,name2):
 def get_uuid(query):
     """
     used for getting 1st returned uuid from API for a given company query
+    and all descriptions of resembling companies upto 25
     """
     response = requests.get(base_api_endpoint+
                             f"autocompletes?query={query}&collection_ids=organizations&limit=25",
                             headers=headers)
-    data = json.loads(response.text)
+    similar_companies=None
     uuid='No results for given query'
-    if data['count']== 1:
-        uuid = data['entities'][0]['identifier']['uuid']
-        similar_companies = (data['entities'][0]['identifier']['value'],
-                              data['entities'][0]['short_description'])
-    elif data['count']> 1:
-        # removing dissimilar companies based on length and characters similarity
-        similar_companies = [(i['identifier']['value'],i['short_description']) 
-                              for i in data['entities'] 
-                              if name_comparison_score(i['identifier']['value'],query)>0.15]  
-        
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        if data['count']== 1:
+            uuid = data['entities'][0]['identifier']['uuid']
+            similar_companies = [(data['entities'][0]['identifier']['value'],
+                                  data['entities'][0]['short_description'])]
+        elif data['count']> 1:
+            # removing dissimilar companies based on length and characters similarity
+            similar_companies = [(i['identifier']['value'],i['short_description']) 
+                                  for i in data['entities'] 
+                                  if name_comparison_score(i['identifier']['value'],query)>0.15]          
     return similar_companies, uuid
     
 
@@ -108,9 +112,53 @@ def get_company_details(api_query):
     
     return company_details
 
+def batch_call_api(df):
+    """
+    Function to call crunchbase api 20 times in every minute 
+    max limit is 25
+    """
+    # Initialize counter and error list
+    errors=[]
+    desc_df=pd.DataFrame(columns=['company', 'description'])
+    # Loop through each row in the DataFrame
+    for index, row in df.iterrows():
+        # Extract the query with company name and country from the DataFrame
+        query = input_df.loc[index,'queries']
+        if index % 20 == 0:
+            # Create the API request URL
+            similar_companies, uuid = get_uuid(query)
+    
+            # Check if the response was successful
+            if similar_companies:
+                # Extract the descriptions the API response
+                desc_df = pd.concat([desc_df,
+                          pd.DataFrame(similar_companies, columns=['company', 'description'])],
+                          ignore_index=True)
+                if uuid!='No results for given query':
+                    df.loc[index,'uuid'] = uuid
+                else:
+                    df.loc[index,'uuid'] = ''
+            else:
+                # Add the company to the error list
+                errors.append(query)
+            print("Taking a minute break...")
+            time.sleep(60)
+    
+        # Check if all inputs have been given
+        if index == len(df) - 1:
+            print("All inputs have been processed.")
+            return errors, df,desc_df
+
 
 
 if __name__ == '__main__':
+    batch_calling=False
+    
+    if batch_calling: 
+        input_df = pd.read_csv("data/unicorn-company-list.csv",keep_default_na=False)
+        input_df['queries']=input_df.apply(lambda x: x['Company']+", "+x['Country'],axis=1)
+        errors, df,desc_df = batch_call_api(input_df)
+    
     api_query = "Amazon.com, Inc., USA"
     similar_companies, uuid = get_uuid(api_query)
     print(similar_companies)
