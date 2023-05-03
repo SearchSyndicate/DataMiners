@@ -14,6 +14,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import tldextract
 
+GOOGLE_SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
+GOOGLE_API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
 
 ## function to extract info
 def domain_extract(url):
@@ -34,8 +36,7 @@ def get_url_from_name(query):
     # Construct the API request URL
     url = f'https://api.duckduckgo.com/?q={query}&format=json'
     # goole API
-    SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
-    API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
+    
     endpoint = "https://www.googleapis.com/customsearch/v1"
 
     # Send the API request
@@ -50,7 +51,7 @@ def get_url_from_name(query):
         print(start_url)
     else:
         # Construct the API endpoint URL and search query parameters
-        params = {"key": API_KEY, "cx": SEARCH_ENGINE_ID, "q": query}
+        params = {"key": GOOGLE_API_KEY, "cx": GOOGLE_SEARCH_ENGINE_ID, "q": query}
 
         # Send the API request with authentication headers
         response = requests.get(endpoint, params=params)
@@ -123,6 +124,40 @@ def extract_table(url):
     dfs = pd.read_html(r.text)
     return dfs
 
+def get_product_images(company_name):
+    """
+    Function to retrieve 5 image urls list from a given company name
+    """
+    search_url = "https://www.googleapis.com/customsearch/v1"
+    num_results = 5
+    search_type = "image"
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # construct the query string
+    query_string = f"{company_name} products"
+
+    # make the request to the Google Custom Search API
+    params = {
+        "key": GOOGLE_API_KEY,
+        "cx": GOOGLE_SEARCH_ENGINE_ID,
+        "q": query_string,
+        "num": num_results,
+        "searchType": search_type
+    }
+    response = requests.get(search_url, params=params, headers=headers)
+
+    # parse the response and get the image URLs
+    image_urls = []
+    if response.status_code == 200:
+        results = response.json().get("items")
+        if results:
+            for result in results:
+                image_urls.append(result.get("link"))
+
+    return image_urls
+
 if __name__ == '__main__':
     
     # Define a set to store visited URLs to avoid duplicates
@@ -135,10 +170,12 @@ if __name__ == '__main__':
     count = 0
     
     query= 'Amazon'
-    crawl=False
+
     start_url = get_url_from_name(query)
-    
+    crawl=False
     if crawl:
+        #retrieving  images
+        image_urls = get_product_images(query)
         # Start crawling from the starting URL
         visited_url = crawl(url=start_url)
         df = pd.DataFrame(data={"url":extracted_url,"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list})
