@@ -9,7 +9,10 @@ Original file is located at
 ## global web scrapper
 """
 
-# install imported Func
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import tldextract
 
 
 ## function to extract info
@@ -24,46 +27,33 @@ def get_tag_text(url, page_source_text, tag_text):
     text_dict[domain_extract(url)] = list(set(tag_texts))
     return text_dict
 
-## punlic API for duckduckgo
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-import tldextract
+## public API for duckduckgo
+def get_url_from_name(query):
+    # Specify your search query
+    
+    # Construct the API request URL
+    url = f'https://api.duckduckgo.com/?q={query}&format=json'
+    
+    # Send the API request
+    response = requests.get(url)
+    
+    # Parse the JSON response
+    data = response.json()
+    
+    # Extract relevant information from the response
+    if 'Type' in data and data['Type'] == 'E':
+        print('Error:', data['Message'])
+    else:
+        print('Results:')
+        for result in data['Results']:
+            print('URL:', result['FirstURL'])
+            print('Text:', result['Text'])
+            print('-----------------------------------')
 
-# Specify your search query
-query = 'IKEA'
+    # Define the starting URL for crawling
+    start_url = data['Results'][0]["FirstURL"]
+    return start_url
 
-# Construct the API request URL
-url = f'https://api.duckduckgo.com/?q={query}&format=json'
-
-# Send the API request
-response = requests.get(url)
-
-# Parse the JSON response
-data = response.json()
-
-# Extract relevant information from the response
-if 'Type' in data and data['Type'] == 'E':
-    print('Error:', data['Message'])
-else:
-    print('Results:')
-    for result in data['Results']:
-        print('Title:', result['FirstURL'])
-        print('URL:', result['FirstURL'])
-        print('Text:', result['Text'])
-        print('-----------------------------------')
-
-# Define the starting URL for crawling
-start_url = data['Results'][0]["FirstURL"]
-
-# Define a set to store visited URLs to avoid duplicates
-visited_urls = set()
-extracted_url = []
-extract_domain = []
-para_list = []
-div_list = []
-# Define a function to crawl a URL and extract relevant information
-count = 0
 def crawl(url):
     # Check if the URL has already been visited
     global count
@@ -104,9 +94,39 @@ def crawl(url):
     visited_urls.add(url)
 
     return visited_urls
-# Start crawling from the starting URL
-visited_url = crawl(url=start_url)
-df = pd.DataFrame(data={"url":extracted_url,"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list})
 
-df.head(50)
+def extract_table(url):
+    """
+    Function to retrieve tables as a pandas dataframe from a given url
+    """
+    header = {
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
+      "X-Requested-With": "XMLHttpRequest"
+    }
+
+    r = requests.get(url, headers=header)
+    dfs = pd.read_html(r.text)
+    return dfs
+
+if __name__ == '__main__':
+    
+    # Define a set to store visited URLs to avoid duplicates
+    visited_urls = set()
+    extracted_url = []
+    extract_domain = []
+    para_list = []
+    div_list = []
+    # Define a function to crawl a URL and extract relevant information
+    count = 0
+    
+    query= 'IKEA'
+    crawl=False
+    start_url = get_url_from_name(query)
+    
+    if crawl:
+        # Start crawling from the starting URL
+        visited_url = crawl(url=start_url)
+        df = pd.DataFrame(data={"url":extracted_url,"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list})
+        
+        df.head(50)
 
