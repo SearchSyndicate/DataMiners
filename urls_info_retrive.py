@@ -30,28 +30,41 @@ def get_tag_text(url, page_source_text, tag_text):
 ## public API for duckduckgo
 def get_url_from_name(query):
     # Specify your search query
-    
+
     # Construct the API request URL
     url = f'https://api.duckduckgo.com/?q={query}&format=json'
-    
+    # goole API
+    SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
+    API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
+    endpoint = "https://www.googleapis.com/customsearch/v1"
+
     # Send the API request
     response = requests.get(url)
-    
+
     # Parse the JSON response
     data = response.json()
-    
-    # Extract relevant information from the response
-    if 'Type' in data and data['Type'] == 'E':
-        print('Error:', data['Message'])
-    else:
-        print('Results:')
-        for result in data['Results']:
-            print('URL:', result['FirstURL'])
-            print('Text:', result['Text'])
-            print('-----------------------------------')
 
-    # Define the starting URL for crawling
-    start_url = data['Results'][0]["FirstURL"]
+    if data['Results']:
+        # Define the starting URL for crawling
+        start_url = data['Results'][0]["FirstURL"]
+        print(start_url)
+    else:
+        # Construct the API endpoint URL and search query parameters
+        params = {"key": API_KEY, "cx": SEARCH_ENGINE_ID, "q": query}
+
+        # Send the API request with authentication headers
+        response = requests.get(endpoint, params=params)
+
+        # Parse the JSON response and extract the search results
+        json_data = response.json()
+        search_results = json_data["items"]
+        urls = []
+        # Print the URLs of the search results
+        for result in search_results:
+            urls.append(result["link"])
+        start_url = urls[0]
+        print(start_url)
+    
     return start_url
 
 def crawl(url):
@@ -119,7 +132,7 @@ if __name__ == '__main__':
     # Define a function to crawl a URL and extract relevant information
     count = 0
     
-    query= 'IKEA'
+    query= 'Amazon'
     crawl=False
     start_url = get_url_from_name(query)
     
@@ -127,6 +140,5 @@ if __name__ == '__main__':
         # Start crawling from the starting URL
         visited_url = crawl(url=start_url)
         df = pd.DataFrame(data={"url":extracted_url,"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list})
-        
         df.head(50)
 
