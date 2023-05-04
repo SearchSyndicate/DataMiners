@@ -7,8 +7,9 @@ Created on Wed May  3 21:17:09 2023
 """
 
 import os
+import validators
 from crunchbase_api import get_company_details
-from urls_info_retrive import get_product_images
+from urls_info_retrive import get_product_images,domain_extract
 from flask_cors import CORS
 from flask import Flask,request,render_template
 
@@ -32,6 +33,8 @@ def predict():
     uses function pred for classification and covert the result to JSON format
     """
     text = request.form['text']
+    if validators.url(text):
+        text = domain_extract(text)
 
     search_type = request.form.get('scr_select')
     print(search_type)
