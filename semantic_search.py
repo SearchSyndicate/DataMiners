@@ -1,27 +1,22 @@
 ## sementic search module
+from crawl import crawl_se_level
 from crawl import crawl
-from urls_info_retrive import get_url_from_name
 import faiss
 from transformers import AutoTokenizer, AutoModel
 from datasets import Dataset
 from langdetect import detect
-
-## return data from crawl function 
-query = "IKEA"
-start_url = get_url_from_name(query)
-visited_url, output = crawl(url=start_url)
+from urls_info_retrive import get_url_from_name
 
 
-# Load the pre-trained model and tokenizer
-model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+
+##define module variable
+# create a semnetic search function to retrieve most relative urls
+model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
 model = AutoModel.from_pretrained(model_ckpt)
 
 
-# this function to extract  the most related urls which i will use later with semantic search over text for the next two function
-# Define a function for semantic search
-# input will be the extracted_url from crawl fucntion + the input query (company name)
-
+# relative urls
 def semantic_search_urls(extracted_url, query):
     # Convert the extracted url to a dataset
     dict_urls = {"urls": extracted_url}
@@ -40,18 +35,15 @@ def semantic_search_urls(extracted_url, query):
 
     # Embed the dataset
     embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["urls"]).detach().cpu().numpy()[0]}
+        lambda x: {"embeddings": get_embeddings(x["urls"]).cpu().detach().numpy()[0]}
     )
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
     question = f"{query} products and service"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=5)
-
-    # Return the search results
-    return list(samples["urls"])
-
+    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=15)
+    return samples["urls"]
 
 
 
@@ -60,7 +52,7 @@ def semantic_search_urls(extracted_url, query):
 # Define a function for semantic search
 def semantic_search_tags(list_text):
     texts = []
-    for text in list_text[0:100]:
+    for text in list_text:
       language = detect(" ".join(text[0:10]))
       if language == "en":
         try:
@@ -85,7 +77,7 @@ def semantic_search_tags(list_text):
 
     # Embed the dataset
     embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["tags"]).detach().cpu().numpy()[0]}
+        lambda x: {"embeddings": get_embeddings(x["tags"]).cpu().detach().numpy()[0]}
     )
     embeddings_dataset.add_faiss_index(column="embeddings")
 
@@ -128,7 +120,7 @@ def semantic_search_div(list_text):
 
     # Embed the dataset
     embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["div"]).detach().cpu().numpy()[0]}
+        lambda x: {"embeddings": get_embeddings(x["div"]).cpu().detach().numpy()[0]}
     )
     embeddings_dataset.add_faiss_index(column="embeddings")
 
@@ -141,5 +133,17 @@ def semantic_search_div(list_text):
     return list(samples["div"])
 
 if __name__ == "__main__":
-   samples_urls = semantic_search_urls(extracted_url=output["url"], query=query)
+   query = "IKEA"
+   start_url = get_url_from_name(query)
+   extracted_url = crawl(url=start_url)
+   samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+   output = crawl_se_level(samples_urls)
    sample_text = semantic_search_tags(list_text = output["tag_text_p"])
+   print(sample_text)
+   
+   
+   #print(sample_text)
+   #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
+   #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
+   # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"
+   # load the model "model = AutoModel.from_from_pretrained("./models/checkpoint/")"
