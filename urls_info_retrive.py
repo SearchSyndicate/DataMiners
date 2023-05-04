@@ -26,8 +26,7 @@ def get_tag_text(url, page_source_text, tag_text):
     text_dict={}
     tag_text_list = page_source_text.find_all(tag_text)
     tag_texts = [div.text for div in tag_text_list]
-    text_dict[domain_extract(url)] = list(set(tag_texts))
-    return text_dict
+    return list(set(tag_texts))
 
 ## public API for duckduckgo
 def get_url_from_name(query):
@@ -68,48 +67,6 @@ def get_url_from_name(query):
     
     return start_url
 
-def crawl(url):
-    # Check if the URL has already been visited
-    global count
-    if url in visited_urls or count >= 1000:
-        return
-    header = {
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.75 Safari/537.36",
-      "X-Requested-With": "XMLHttpRequest"}
-    # Fetch the web page content
-    response = requests.get(url, headers=header)
-    if response.status_code == 200:
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(response.content, "html.parser")
-        
-        # Extract relevant information from the web page
-        # For example, extracting all the links on the page
-        links = soup.find_all("a")
-        for link in links:
-            link_url = link.get("href")
-            if link_url:
-              # Recursively crawl the extracted URL
-              if link_url.startswith("https://"):
-              # Process the extracted URL (e.g., store in a database, add to a queue)
-                if link_url in extracted_url:
-                  continue
-                else:
-                  # print(link_url)
-                  para_dict = get_tag_text(url=link_url, page_source_text=soup, tag_text="p")
-                  div_dict = get_tag_text(url=link_url, page_source_text=soup, tag_text="div")
-                  extracted_url.append(link_url)
-                  extract_domain.append(domain_extract(link_url))
-                  para_list.append(para_dict)
-                  div_list.append(div_dict)
-                  # increment count recersion  
-                  count = count + 1
-                  # recersion
-                  crawl(link_url)
-
-    # Add the URL to the set of visited URLs
-    visited_urls.add(url)
-
-    return visited_urls
 
 def extract_table(url):
     """
@@ -158,26 +115,9 @@ def get_product_images(company_name):
 
     return image_urls
 
+
 if __name__ == '__main__':
-    
-    # Define a set to store visited URLs to avoid duplicates
-    visited_urls = set()
-    extracted_url = []
-    extract_domain = []
-    para_list = []
-    div_list = []
     # Define a function to crawl a URL and extract relevant information
-    count = 0
-    
-    query= 'Amazon'
-
+    query= 'IKEA'
     start_url = get_url_from_name(query)
-    crawl=False
-    if crawl:
-        #retrieving  images
-        image_urls = get_product_images(query)
-        # Start crawling from the starting URL
-        visited_url = crawl(url=start_url)
-        df = pd.DataFrame(data={"url":extracted_url,"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list})
-        df.head(50)
-
+    image_urls = get_product_images(query)
