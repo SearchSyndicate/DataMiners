@@ -32,6 +32,7 @@ def predict():
     Main API function which takes image from local storage with request and
     uses function pred for classification and covert the result to JSON format
     """
+    #check if the input is an url
     text = request.form['text']
     if validators.url(text):
         text = domain_extract(text)
