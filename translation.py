@@ -29,6 +29,8 @@ def aws_translation(input_text):
     # Print the input language and the translated text
     print(f"Detected input language: {response['SourceLanguageCode']}")
     print(f"Translated text: {response['TranslatedText']}")
+
+
 def non_api_translation(input_text):
     language = detect(input_text)
 
