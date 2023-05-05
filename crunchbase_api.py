@@ -14,8 +14,10 @@ import json
 import re
 import pandas as pd
 import time
+from youdotcom import Chat
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
+you_api_key="H63327XXYJEH2FB3B3ISHR8FITIMJR2VREA"
 
 headers = {
     "accept": "application/json",
@@ -68,7 +70,39 @@ def get_uuid(query, comp=True):
                 [(i['identifier']['value'],i['short_description']) 
                                      for i in data['entities']]
     return similar_companies, uuid
+
+def get_products_from_text(text):
+    """
+    Function to extract Product/Services from a text
+    """
+    prompt = f"""
+    Your task is to help a marketing team extract useful informations
+    from a given text.
+    You have to perform the following actions: 
+    1. Identify the following items from the text: 
+        - list of Products sold by the company separated by commas.
+        - list of Services offered by the company separated by commas.
+        - list of Keywords about the Products or Services of the company 
+          separated by commas.
     
+    2. Make each item of the above lists one or two words long, if possible. 
+
+    3. Format your response only as a JSON object with \
+        "Products", "Services" and "Keywords" as the keys. 
+        If the information isn't present, use "unknown" \
+        as the value.
+        Make your response as short as possible without any explanation.
+        
+    text: '''{text}'''
+    """
+    
+    chat = Chat.send_message(message=prompt, api_key=you_api_key)
+    if chat['status_code']==200:
+        output = chat['message']
+    else:
+        error = f"{chat['status_code']} error occurred"
+        output = {'Products':error, 'Services':error}
+    return output
 
 def get_company_details(api_query): 
     """
@@ -112,7 +146,7 @@ def get_company_details(api_query):
         company_description = data['entities'][0]['properties']['short_description']
         company_details = {"Name":company_name,
                            "Location":company_location,
-                           "Description":company_description}
+                           "Products/Services":get_products_from_text(company_description)}
     else:
         company_details = {"Error":"No results for this query"}
     
@@ -152,7 +186,6 @@ def batch_call_api(df):
         if index == len(df) - 1:
             print("All inputs have been processed.")
             return errors, df,desc_df
-
 
 
 if __name__ == '__main__':
