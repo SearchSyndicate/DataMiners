@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="assets/style.css">
     <script src="assets/code.js"></script>
     <title>Data Search</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='teamicon.ico') }}"/>
   </head>
       <br>
     <div class="container main">
@@ -35,7 +36,9 @@
           <option value="With Images">With Images</option>
         </select>
         <h4>Query here:</h4>
-        <input name="text" placeholder="e.g. Amazon, USA">
+        <input name="company_text" placeholder="Company e.g. Amazon">
+        <input name="country_text" placeholder="Country e.g. USA">
+        <input name="url_text" placeholder="URL e.g. https://www.google.com/">
         <br><br>
         <input style="border-radius: 8px;" class="button button5" type="submit">
     </form>

@@ -9,4 +9,3 @@ boto3==1.26.123
 'transformers[torch]'
 faiss-cpu
 datasets
-validators

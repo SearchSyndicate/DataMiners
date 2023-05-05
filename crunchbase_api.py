@@ -114,7 +114,7 @@ def get_company_details(api_query):
                            "Location":company_location,
                            "Description":company_description}
     else:
-        company_details = "No results for this query"
+        company_details = {"Error":"No results for this query"}
     
     return company_details
 

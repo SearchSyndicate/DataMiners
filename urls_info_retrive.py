@@ -10,7 +10,6 @@ Original file is located at
 """
 
 import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 import tldextract
 
@@ -23,7 +22,6 @@ def domain_extract(url):
     return ext.domain
 
 def get_tag_text(url, page_source_text, tag_text):
-    text_dict={}
     tag_text_list = page_source_text.find_all(tag_text)
     tag_texts = [div.text for div in tag_text_list]
     return list(set(tag_texts))
