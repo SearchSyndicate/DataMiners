@@ -26,7 +26,7 @@ headers = {
 }
 
 def removeSpecialChars(string):
-    clean_string = re.sub(r"[^a-zA-Z0-9]+", ' ', string).lower().strip()
+    clean_string = re.sub(r"[^a-zA-Z0-9]+", '', string).lower().strip()
     return clean_string
 
 def name_comparison_score(name1,name2):
@@ -42,6 +42,25 @@ def name_comparison_score(name1,name2):
         if i.lower() in [x.lower() for x in name2_tokens] and i not in '':
             score+=1
     return score/(length_1+length_2)
+
+def get_main_company_name(company_name):
+    """
+      function to remove any abbreviations of legal entities types
+    """
+    with open('data/Entity_Legal_Names.txt') as f:
+        entity_abbreviations = eval(f.readlines()[0])
+    
+    company_name = company_name.replace(".com","")
+    
+    # Remove any entity type abbreviations from the company name
+    company_words = company_name.split()
+    main_words = []
+    for word in company_words:
+        if word.lower() not in entity_abbreviations:
+            main_words.append(word)
+    main_company_name = " ".join(main_words)
+    
+    return main_company_name
 
 def get_uuid(query, comp=True):
     """
@@ -71,6 +90,16 @@ def get_uuid(query, comp=True):
                                      for i in data['entities']]
     return similar_companies, uuid
 
+def is_json(myjson):
+  """
+    function to check if a string is JSON
+  """
+  try:
+    json.loads(myjson)
+  except ValueError as e:
+    return False
+  return True
+
 def get_products_from_text(text):
     """
     Function to extract Product/Services from a text
@@ -84,14 +113,17 @@ def get_products_from_text(text):
         - list of Services offered by the company separated by commas.
         - list of Keywords about the Products or Services of the company 
           separated by commas.
+          
+    2. You must identify atleast one item in text either from Products or Services.
     
-    2. Make each item of the above lists one or two words long, if possible. 
+    3. Make each item of the above lists one or two words long, if possible. 
+    
+    4. Make your response as short as possible without any explanation or notes.
 
-    3. Format your response only as a JSON object with \
+    5. Format your response only as a JSON object with \
         "Products", "Services" and "Keywords" as the keys. 
-        If the information isn't present, use "unknown" \
+        If the information isn't present in the test, use "unknown" \
         as the value.
-        Make your response as short as possible without any explanation.
         
     text: '''{text}'''
     """
@@ -144,9 +176,14 @@ def get_company_details(api_query):
         company_name = data['entities'][0]['properties']['identifier']['value']
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
+        company_products = get_products_from_text(company_description)
         company_details = {"Name":company_name,
-                           "Location":company_location,
-                           "Products/Services":get_products_from_text(company_description)}
+                           "HQ Location":company_location}
+        if is_json(company_products):
+            company_products = json.loads(company_products)
+            company_details.update(company_products)
+        else:
+            company_details.update({"Products/Services":company_products})
     else:
         company_details = {"Error":"No results for this query"}
     

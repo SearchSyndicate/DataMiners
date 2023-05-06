@@ -11,7 +11,7 @@ from translation import aws_translation
 
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
@@ -116,7 +116,7 @@ def semantic_search_div(list_text):
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
-    question = f"what that company produce and which pructs it have"
+    question = f"what that company produce and which products it have"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
     scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=25)
 
@@ -128,7 +128,7 @@ def handle_text(tag_text):
       text_to_enc.append([" ".join(sub_text)])
    return text_to_enc
 
-query = "IKEA"
+query = "What are the products and services of IKEA?" 
 start_url = get_url_from_name(query)
 extracted_url = crawl(url=start_url)
 samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
@@ -138,8 +138,8 @@ sample_text = semantic_search_tags(list_text=text_to_enc, query=query)
 for smaple in sample_text:
     sample = " ".join(smaple)
     sample = sample.replace("\n", "")
-    aws_translation(sample)
-    #print(sample.replace("\n", ""))
+    #aws_translation(sample)
+    print(sample)
    
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")

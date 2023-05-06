@@ -3,11 +3,11 @@
 """
 Created on Wed May  3 21:17:09 2023
 
-@author: apratim
+@author: Kapil
 """
 
 import os
-from crunchbase_api import get_company_details
+from crunchbase_api import get_company_details, get_main_company_name
 from urls_info_retrive import get_product_images,domain_extract
 from flask_cors import CORS
 from flask import Flask,request,render_template
@@ -32,7 +32,7 @@ def predict():
     uses function pred for classification and covert the result to JSON format
     """
     
-    company_text = request.form['company_text']
+    company_text = get_main_company_name(request.form['company_text'])
     country_text = request.form['country_text']
     url_text = request.form['url_text']
     text = company_text
