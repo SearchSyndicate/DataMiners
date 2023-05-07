@@ -11,12 +11,8 @@ from translation import non_api_translation
 
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-<<<<<<< HEAD
-model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-=======
 #model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
->>>>>>> 91ebf92 (create a function for semantic search module)
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
