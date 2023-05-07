@@ -121,20 +121,6 @@ def handle_text(text, chunk_size=2000):
       text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
    return text_to_enc
 
-def clean_text(text):
-    # remove newlines, tabs, and extra spaces
-    text = re.sub(r'\n+', ' ', text)
-    text = re.sub(r'\t+', ' ', text)
-    text = re.sub(r' +', ' ', text)
-    # remove URLs
-    text = re.sub(r'http\S+', '', text)
-    # remove punctuation
-    text = re.sub(r'[^\w\s]', '', text)
-    # convert to lowercase
-    #text = text.lower()
-    return text
-
-
 def semantic_search(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
