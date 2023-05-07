@@ -129,20 +129,7 @@ def handle_text(tag_text):
       text_to_enc.append([" ".join(sub_text)])
    return text_to_enc
 
-<<<<<<< HEAD
-query = "What are the products and services of IKEA?" 
-start_url = get_url_from_name(query)
-extracted_url = crawl(url=start_url)
-samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
-output = crawl_se_level(samples_urls)
-text_to_enc = handle_text(output["tag_text_p"])
-sample_text = semantic_search_tags(list_text=text_to_enc, query=query)
-for smaple in sample_text:
-    sample = " ".join(smaple)
-    sample = sample.replace("\n", "")
-    #aws_translation(sample)
-    print(sample)
-=======
+
 def semantic_search(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
