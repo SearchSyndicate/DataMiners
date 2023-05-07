@@ -15,6 +15,7 @@ import re
 import pandas as pd
 import time
 from youdotcom import Chat
+from urls_info_retrive import domain_extract
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 you_api_key="H63327XXYJEH2FB3B3ISHR8FITIMJR2VREA"
@@ -50,12 +51,14 @@ def get_main_company_name(company_name):
     with open('data/Entity_Legal_Names.txt') as f:
         entity_abbreviations = eval(f.readlines()[0])
     
-    company_name = company_name.replace(".com","")
-    
     # Remove any entity type abbreviations from the company name
     company_words = company_name.split()
     main_words = []
     for word in company_words:
+        word=word.replace(",","")
+        #remove .com etc. from the names
+        if "." in word:
+            word = domain_extract(word)
         if word.lower() not in entity_abbreviations:
             main_words.append(word)
     main_company_name = " ".join(main_words)
@@ -97,7 +100,8 @@ def is_json(myjson):
   try:
     json.loads(myjson)
   except ValueError as e:
-    return False
+      print(str(e))
+      return False
   return True
 
 def get_products_from_text(text):

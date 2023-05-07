@@ -91,7 +91,7 @@ def get_product_images(company_name):
     }
 
     # construct the query string
-    query_string = f"{company_name} products"
+    query_string = f"{company_name} products or services"
 
     # make the request to the Google Custom Search API
     params = {

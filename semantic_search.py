@@ -116,7 +116,7 @@ def semantic_search_div(list_text):
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
-    question = f"what that company produce and which products it have"
+    question = "What are the products and services of the company?"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
     scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=25)
 
