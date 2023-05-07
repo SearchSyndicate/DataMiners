@@ -11,12 +11,7 @@ from translation import non_api_translation
 
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-<<<<<<< HEAD
 model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-=======
-#model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
->>>>>>> 91ebf92 (create a function for semantic search module)
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
@@ -133,20 +128,6 @@ def handle_text(tag_text):
       text_to_enc.append([" ".join(sub_text)])
    return text_to_enc
 
-<<<<<<< HEAD
-query = "What are the products and services of IKEA?" 
-start_url = get_url_from_name(query)
-extracted_url = crawl(url=start_url)
-samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
-output = crawl_se_level(samples_urls)
-text_to_enc = handle_text(output["tag_text_p"])
-sample_text = semantic_search_tags(list_text=text_to_enc, query=query)
-for smaple in sample_text:
-    sample = " ".join(smaple)
-    sample = sample.replace("\n", "")
-    #aws_translation(sample)
-    print(sample)
-=======
 def semantic_search(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
@@ -157,10 +138,14 @@ def semantic_search(query):
     for smaple in sample_text:
         sample = " ".join(smaple)
         sample = sample.replace("\n", "")
-        sample = non_api_translation(sample)
+        language = detect(" ".join(sample[0:10]))
+        if language != "en":
+            sample = non_api_translation(sample)
     return sample     
         
-   
+if __name__ == '__main__':  
+     query = "What are the products and services of IKEA?" 
+     semantic_search(query)
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
