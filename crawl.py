@@ -53,6 +53,8 @@ def crawl(url):
                   continue
                 else:
                   extracted_url.append(link_url)
+    if url not in extracted_url:
+    	extracted_url.append(url)
     return extracted_url
 
 
