@@ -35,14 +35,15 @@ def non_api_translation(input_text):
     language = detect(input_text)
 
     # Print the detected language code
-    translator = Translator(from_lang=language, to_lang="en")
-
-    # Translate a string from English to Spanish
-    translation = translator.translate(input_text)
-
-    #Print the translated string
-    print(f"Detected input language: {language}")
-    print(f"Translated text: {translation}")
+    if language == "en":
+        return input_text
+    else:
+        translator = Translator(from_lang=language, to_lang="en")
+        # Translate a string from English to Spanish
+        translation = translator.translate(input_text)
+        #Print the translated string
+        print(f"Detected input language: {language}")
+        print(f"Translated text: {translation}")
 
 if __name__ == "__main__":
     try:

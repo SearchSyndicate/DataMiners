@@ -55,7 +55,7 @@ def crawl(url):
                   extracted_url.append(link_url)
     if url not in extracted_url:
     	extracted_url.append(url)
-    return extracted_url
+    return list(set(extracted_url))
 
 
 if __name__ == "__main__":

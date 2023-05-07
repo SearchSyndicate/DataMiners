@@ -1,4 +1,5 @@
 ## sementic search module
+import re
 from crawl import crawl_se_level
 from crawl import crawl
 import faiss
@@ -8,7 +9,6 @@ from langdetect import detect
 from urls_info_retrive import get_url_from_name
 from translation import aws_translation
 from translation import non_api_translation
-
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
 #model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
@@ -36,14 +36,13 @@ def semantic_search_urls(extracted_url, query):
 
     # Embed the dataset
     embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["urls"]).cpu().detach().numpy()[0]}
-    )
+        lambda x: {"embeddings": get_embeddings(x["urls"]).cpu().detach().numpy()[0]})
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
     question = f"{query} products and service"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=15)
+    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=10)
     return samples["urls"]
 
 
@@ -74,35 +73,24 @@ def semantic_search_tags(list_text, query):
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
-    question = f"what is {query} products ans services? also mention offers don't mention any money."
+    question = f"what is {query} products and services?"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=3)
+    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=2)
 
     # Return the search results
     return list(samples["tags"])
-
 # here we define a semantic search over text which in df["tag_text_div"
 # input will be the df get out of crawl function 
 # Define a function for semantic search
 # Define a function for semantic search div data
-def semantic_search_div(list_text):
-    texts = []
-    for text in list_text:
-      language = detect(" ".join(text[0:10]))
-      if language == "en":
-        try:
-          texts = texts + text
-        except Exception as e:
-          continue
-    texts = list(set(texts))
+def semantic_search_div(list_text, query):
     # Convert the extracted url to a dataset
-    dict_urls = {"div": texts}
+    dict_urls = {"div": list_text}
     dataset_url = Dataset.from_dict(dict_urls)
 
     # Define a function for pooling the output of the model
     def cls_pooling(model_output):
         return model_output.last_hidden_state[:,0]
-
     # Define a function for getting embeddings
     def get_embeddings(url):
         encoded_input = tokenizer(url, padding=True, truncation=True, return_tensors="pt")
@@ -119,15 +107,32 @@ def semantic_search_div(list_text):
     # Search for similar URLs
     question = "What are the products and services of the company?"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=25)
+    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=2)
 
     # Return the search results
     return list(samples["div"])
-def handle_text(tag_text):
+
+
+def handle_text(text, chunk_size=2000):
    text_to_enc = []
-   for sub_text in tag_text:
-      text_to_enc.append([" ".join(sub_text)])
+   for sub_text in text:
+      sub_text = " ".join(sub_text)
+      #sub_text = non_api_translation(sub_text)
+      text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
    return text_to_enc
+
+def clean_text(text):
+    # remove newlines, tabs, and extra spaces
+    text = re.sub(r'\n+', ' ', text)
+    text = re.sub(r'\t+', ' ', text)
+    text = re.sub(r' +', ' ', text)
+    # remove URLs
+    text = re.sub(r'http\S+', '', text)
+    # remove punctuation
+    text = re.sub(r'[^\w\s]', '', text)
+    # convert to lowercase
+    #text = text.lower()
+    return text
 
 
 def semantic_search(query):
@@ -135,15 +140,20 @@ def semantic_search(query):
     extracted_url = crawl(url=start_url)
     samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
     output = crawl_se_level(samples_urls)
-    text_to_enc = handle_text(output["tag_text_p"])
-    sample_text = semantic_search_tags(list_text=text_to_enc, query=query)
-    for smaple in sample_text:
-        sample = " ".join(smaple)
-        sample = sample.replace("\n", "")
-        sample = non_api_translation(sample)
-    return sample     
+    text_to_enc_p = handle_text(output["tag_text_p"])
+    text_to_enc_div = handle_text(output["tag_text_div"])
+    sample_text_p = semantic_search_tags(list_text=text_to_enc_p, query=query)
+    sample_text_div = semantic_search_div(list_text=text_to_enc_div, query=query)
+    srt_text_p = " ".join(sample_text_p)
+    srt_text_div = " ".join(sample_text_div)
+    srt_text = srt_text_p + " " + srt_text_div
+    srt_text = clean_text(srt_text)
+    return srt_text     
         
-   
+if __name__  == "__main__":
+    query = "amazon"
+    sample = semantic_search(query)
+    print(sample)
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
