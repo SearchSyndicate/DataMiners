@@ -7,11 +7,16 @@ from datasets import Dataset
 from langdetect import detect
 from urls_info_retrive import get_url_from_name
 from translation import aws_translation
-
+from translation import non_api_translation
 
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
+<<<<<<< HEAD
 model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+=======
+#model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+>>>>>>> 91ebf92 (create a function for semantic search module)
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
@@ -73,7 +78,7 @@ def semantic_search_tags(list_text, query):
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
-    question = f"what is {query} prdocts ans services? also mention offers don't mention any money."
+    question = f"what is {query} products ans services? also mention offers don't mention any money."
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
     scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=3)
 
@@ -128,6 +133,7 @@ def handle_text(tag_text):
       text_to_enc.append([" ".join(sub_text)])
    return text_to_enc
 
+<<<<<<< HEAD
 query = "What are the products and services of IKEA?" 
 start_url = get_url_from_name(query)
 extracted_url = crawl(url=start_url)
@@ -140,6 +146,20 @@ for smaple in sample_text:
     sample = sample.replace("\n", "")
     #aws_translation(sample)
     print(sample)
+=======
+def semantic_search(query):
+    start_url = get_url_from_name(query)
+    extracted_url = crawl(url=start_url)
+    samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+    output = crawl_se_level(samples_urls)
+    text_to_enc = handle_text(output["tag_text_p"])
+    sample_text = semantic_search_tags(list_text=text_to_enc, query=query)
+    for smaple in sample_text:
+        sample = " ".join(smaple)
+        sample = sample.replace("\n", "")
+        sample = non_api_translation(sample)
+    return sample     
+        
    
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
