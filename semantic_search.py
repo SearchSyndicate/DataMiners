@@ -1,5 +1,6 @@
 ## sementic search module
 import re
+from huggingchat import extract_info
 from crawl import crawl_se_level
 from crawl import crawl
 import faiss
@@ -85,7 +86,7 @@ def semantic_search_tags(list_text, query):
 # Define a function for semantic search div data
 def semantic_search_div(list_text, query):
     # Convert the extracted url to a dataset
-    dict_urls = {"div": list_text}
+    dict_urls = {"div": list_text[0:5]}
     dataset_url = Dataset.from_dict(dict_urls)
 
     # Define a function for pooling the output of the model
@@ -107,7 +108,7 @@ def semantic_search_div(list_text, query):
     # Search for similar URLs
     question = "What are the products and services of the company?"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=2)
+    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=3)
 
     # Return the search results
     return list(samples["div"])
@@ -141,19 +142,20 @@ def semantic_search(query):
     samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
     output = crawl_se_level(samples_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
-    text_to_enc_div = handle_text(output["tag_text_div"])
+    #text_to_enc_div = handle_text(output["tag_text_div"])
     sample_text_p = semantic_search_tags(list_text=text_to_enc_p, query=query)
-    sample_text_div = semantic_search_div(list_text=text_to_enc_div, query=query)
+    #sample_text_div = semantic_search_div(list_text=text_to_enc_div, query=query)
     srt_text_p = " ".join(sample_text_p)
-    srt_text_div = " ".join(sample_text_div)
-    srt_text = srt_text_p + " " + srt_text_div
-    srt_text = clean_text(srt_text)
+    #srt_text_div = " ".join(sample_text_div)
+    #srt_text = srt_text_p + " " + srt_text_div
+    srt_text = clean_text(srt_text_p)
     return srt_text     
         
 if __name__  == "__main__":
     query = "amazon"
     sample = semantic_search(query)
-    print(sample)
+    output = extract_info(sample, query)
+    print(output)
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
