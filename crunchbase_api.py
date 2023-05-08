@@ -16,6 +16,7 @@ import pandas as pd
 import time
 from youdotcom import Chat
 from urls_info_retrive import domain_extract
+from classify_codes import classify_company
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 you_api_key="H63327XXYJEH2FB3B3ISHR8FITIMJR2VREA"
@@ -181,6 +182,7 @@ def get_company_details(api_query):
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
         company_products = get_products_from_text(company_description)
+        company_codes = classify_company(company_description)
         company_details = {"Name":company_name,
                            "HQ Location":company_location}
         if is_json(company_products):
