@@ -25,7 +25,7 @@ def classify_company(company_data):
     sic_matches = match_keywords(company_data, sic_df['Company_type'])
     naics_matches = match_keywords(company_data, naics_df['Title'])
 
-    sic_code = sic_df.loc[sic_df['Company_type'].isin(sic_matches), 'sic_code'].iloc[0] if len(sic_matches) > 0 else None
-    naics_code = naics_df.loc[naics_df['Title'].isin(naics_matches), 'naics_code'].iloc[0] if len(naics_matches) > 0 else None
+    sic_code = sic_df.loc[sic_df['Company_type'].isin(sic_matches), 'SIC_codes'].iloc[0] if len(sic_matches) > 0 else None
+    naics_code = naics_df.loc[naics_df['Title'].isin(naics_matches), 'NAICS_Codes'].iloc[0] if len(naics_matches) > 0 else None
 
     return sic_code, naics_code

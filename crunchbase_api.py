@@ -4,9 +4,6 @@
 Created on Mon Apr 24 19:12:50 2023
 
 @author: Kapil
-
-Works best only for a single company name. It gets confused with some other company 
-if more informations are given like country etc.
 """
 
 import requests
@@ -17,6 +14,7 @@ import time
 from youdotcom import Chat
 from urls_info_retrive import domain_extract
 from classify_codes import classify_company
+from semantic_search import semantic_search
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 you_api_key="H63327XXYJEH2FB3B3ISHR8FITIMJR2VREA"
@@ -28,7 +26,7 @@ headers = {
 }
 
 def removeSpecialChars(string):
-    clean_string = re.sub(r"[^a-zA-Z0-9]+", '', string).lower().strip()
+    clean_string = re.sub(r"[^a-zA-Z0-9]+", ' ', string).lower().strip()
     return clean_string
 
 def name_comparison_score(name1,name2):
@@ -105,40 +103,56 @@ def is_json(myjson):
       return False
   return True
 
-def get_products_from_text(text):
+def get_products_from_text(text, company):
     """
     Function to extract Product/Services from a text
     """
+    def prompting(prompt):
+        chat = Chat.send_message(message=prompt, api_key=you_api_key)
+        print(type(chat))
+        print(chat)
+        try:
+            if chat['status_code']==200 and 'str' not in str(type(chat)):
+                output = chat['message']
+            else:
+                error = f"{chat['status_code']} error occurred"
+                output = {'Products':error, 'Services':error}
+        except: 
+            error = f"{chat} error occurred"
+            output = {'Products':error, 'Services':error}
+        
+        return output
+    
+    #sample = semantic_search(company)
+    helper_prompt = f"""Give a list of the products and services of {company}? 
+    limit your words to only relevant words."""
+    sample = prompting(helper_prompt)
+    
     prompt = f"""
-    Your task is to help a marketing team extract useful informations
-    from a given text.
+    Your task is to help a marketing team to give useful informations
+    about {company}.
     You have to perform the following actions: 
-    1. Identify the following items from the text: 
-        - list of Products sold by the company separated by commas.
-        - list of Services offered by the company separated by commas.
-        - list of Keywords about the Products or Services of the company 
+        
+    1. Share the following informations about {company}:  
+        - list of Products sold by {company} separated by commas.
+        - list of Services offered by{company} separated by commas.
+        - list of Keywords about the Products or Services of the {company} 
           separated by commas.
           
-    2. You must identify atleast one item in text either from Products or Services.
+    2. You must identify atleast one item either from Products or Services.\
+        There's no upper limit as long as they are relevant.
     
-    3. Make each item of the above lists one or two words long, if possible. 
-    
-    4. Make your response as short as possible without any explanation or notes.
+    3. Make your response as accurate as possible without any explanation or notes.
 
-    5. Format your response only as a JSON object with \
-        "Products", "Services" and "Keywords" as the keys. 
+    4. Format your response only as one JSON object with \
+        only "Products", "Services" and "Keywords" as the keys. 
         If the information isn't present in the test, use "unknown" \
         as the value.
         
     text: '''{text}'''
+    other helpful text: '''{sample}'''
     """
-    
-    chat = Chat.send_message(message=prompt, api_key=you_api_key)
-    if chat['status_code']==200:
-        output = chat['message']
-    else:
-        error = f"{chat['status_code']} error occurred"
-        output = {'Products':error, 'Services':error}
+    output = prompting(prompt)
     return output
 
 def get_company_details(api_query): 
@@ -181,11 +195,13 @@ def get_company_details(api_query):
         company_name = data['entities'][0]['properties']['identifier']['value']
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
-        company_products = get_products_from_text(company_description)
-        company_codes = classify_company(company_description)
+        company_products = get_products_from_text(company_description, company_name)
+        company_codes = classify_company(removeSpecialChars(company_products))
         company_details = {"Name":company_name,
-                           "HQ Location":company_location}
-        if is_json(company_products):
+                           "HQ Location":company_location,
+                           "SIC Code":company_codes[0],
+                           "NAICS Code":company_codes[1]}
+        if is_json(str(company_products)):
             company_products = json.loads(company_products)
             company_details.update(company_products)
         else:
