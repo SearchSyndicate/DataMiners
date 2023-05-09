@@ -9,11 +9,13 @@ Created on Mon Apr 24 19:12:50 2023
 import requests
 import json
 import re
+import bs4 
 import pandas as pd
 import time
 from youdotcom import Chat
 from urls_info_retrive import domain_extract
 from classify_codes import classify_company
+from gpt4free import italygpt
 #from semantic_search import semantic_search
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
@@ -103,25 +105,39 @@ def is_json(myjson):
       return False
   return True
 
+def prompting(prompt):
+    """
+    Prompts Youchat 1st in case of failure prompts Italygpt
+    """
+    chat = Chat.send_message(message=prompt, api_key=you_api_key)
+    print(type(chat))
+    print(chat)
+    
+    def remove_tags(message):
+        return bs4.BeautifulSoup(message, "lxml").text
+    
+    try:
+        if chat['status_code']==200 and 'str' not in str(type(chat)):
+            output = chat['message']
+        else:
+            italygpt_model = italygpt.Completion()
+            italygpt_model.init()
+            italygpt_model.create(prompt=prompt)
+            if is_json(remove_tags(italygpt_model.answer)):
+                output = remove_tags(italygpt_model.answer)
+            else:
+                error = f"{chat['status_code']} error occurred"
+                output = {'Products':error, 'Services':error}
+    except: 
+        error = f"{chat} error occurred"
+        output = {'Products':error, 'Services':error}
+    
+    return output
+
 def get_products_from_text(text, company):
     """
     Function to extract Product/Services from a text
     """
-    def prompting(prompt):
-        chat = Chat.send_message(message=prompt, api_key=you_api_key)
-        print(type(chat))
-        print(chat)
-        try:
-            if chat['status_code']==200 and 'str' not in str(type(chat)):
-                output = chat['message']
-            else:
-                error = f"{chat['status_code']} error occurred"
-                output = {'Products':error, 'Services':error}
-        except: 
-            error = f"{chat} error occurred"
-            output = {'Products':error, 'Services':error}
-        
-        return output
     
     #sample = semantic_search(company)
     helper_prompt = f"""Give a list of the products and services of {company}? 
@@ -199,8 +215,8 @@ def get_company_details(api_query):
         company_codes = classify_company(removeSpecialChars(company_products),company_name)
         company_details = {"Name":company_name,
                            "HQ Location":company_location,
-                           "SIC Code":company_codes[0],
-                           "NAICS Code":company_codes[1]}
+                           "SIC Codes":company_codes[0],
+                           "NAICS Codes":company_codes[1]}
         if is_json(str(company_products)):
             company_products = json.loads(company_products)
             company_details.update(company_products)
