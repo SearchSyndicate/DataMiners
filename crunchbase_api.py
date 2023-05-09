@@ -16,10 +16,11 @@ from youdotcom import Chat
 from urls_info_retrive import domain_extract
 from classify_codes import classify_company
 from gpt4free import italygpt
+from hugchat import hugchat
 #from semantic_search import semantic_search
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
-you_api_key="H63327XXYJEH2FB3B3ISHR8FITIMJR2VREA"
+you_api_key="BPG53UN1C6PVAQ0R6A11PH4E9JF396YNXAI"
 
 headers = {
     "accept": "application/json",
@@ -28,7 +29,7 @@ headers = {
 }
 
 def removeSpecialChars(string):
-    clean_string = re.sub(r"[^a-zA-Z0-9]+", ' ', string).lower().strip()
+    clean_string = re.sub(r"[^a-zA-Z0-9]+", ' ', str(string)).lower().strip()
     return clean_string
 
 def name_comparison_score(name1,name2):
@@ -90,7 +91,7 @@ def get_uuid(query, comp=True):
                                       for i in data['entities'] 
                                    if name_comparison_score(i['identifier']['value'],query)>0.15]
             else:
-                [(i['identifier']['value'],i['short_description']) 
+                similar_companies = [(i['identifier']['value'],i['short_description']) 
                                      for i in data['entities']]
     return similar_companies, uuid
 
@@ -105,33 +106,51 @@ def is_json(myjson):
       return False
   return True
 
-def prompting(prompt):
+def prompting(prompt,helper=False):
     """
-    Prompts Youchat 1st in case of failure prompts Italygpt
+    Prompts Youchat 1st then in case of failure prompts Italygpt 
+    and in case of failure in both, finally calls huggingchat
     """
-    chat = Chat.send_message(message=prompt, api_key=you_api_key)
-    print(type(chat))
-    print(chat)
     
     def remove_tags(message):
         return bs4.BeautifulSoup(message, "lxml").text
-    
+    api="Youchat"
+    chat = "{api} API down"
     try:
-        if chat['status_code']==200 and 'str' not in str(type(chat)):
+        chat = Chat.send_message(message=prompt, api_key=you_api_key)
+        print(type(chat))
+        print(api, chat)
+        if chat['status_code']==200 and 'str' not in str(type(chat))\
+        and ('sorry' or 'apologize' not in str(chat)):
             output = chat['message']
+    except:
+        api="italygpt"
+        italygpt_model = italygpt.Completion()
+        italygpt_model.init()
+        italygpt_model.create(prompt=prompt[:1000])
+        if not helper and not is_json(remove_tags(italygpt_model.answer)):
+            output = remove_tags(italygpt_model.answer)
+            print(type(output))
+            print(api, output)
+        elif helper:
+            output = remove_tags(italygpt_model.answer)
+            print(type(output))
+            print(api, output)
         else:
-            italygpt_model = italygpt.Completion()
-            italygpt_model.init()
-            italygpt_model.create(prompt=prompt)
-            if is_json(remove_tags(italygpt_model.answer)):
-                output = remove_tags(italygpt_model.answer)
-            else:
-                error = f"{chat['status_code']} error occurred"
-                output = {'Products':error, 'Services':error}
-    except: 
-        error = f"{chat} error occurred"
-        output = {'Products':error, 'Services':error}
-    
+            error = f"{chat['status_code']} error occurred"
+            output = {'Products':error, 'Services':error}
+    else: 
+        api="hugchat"
+        chatbot = hugchat.ChatBot()
+        # Create a new conversation
+        id = chatbot.new_conversation()
+        chatbot.change_conversation(id)
+        output = (chatbot.chat(prompt))
+        print(type(output))
+        print(api, output)
+        if not helper and not is_json(output):
+            error = f"{chat} error occurred"
+            output = {'Products':error, 'Services':error}    
     return output
 
 def get_products_from_text(text, company):
@@ -140,9 +159,11 @@ def get_products_from_text(text, company):
     """
     
     #sample = semantic_search(company)
-    helper_prompt = f"""Give a list of the products and services of {company}? 
-    limit your words to only relevant words."""
-    sample = prompting(helper_prompt)
+    helper_prompt = f"""You have to perform the following actions: 
+        1. Give a list of the products and services of {company}. 
+        2. limit your words to only relevant words. 
+        3. If no relevant results found then make sure to include word: "Fail" in the response."""
+    sample = prompting(helper_prompt,helper=True)
     
     prompt = f"""
     Your task is to help a marketing team to give useful informations
@@ -155,14 +176,14 @@ def get_products_from_text(text, company):
         - list of Keywords about the Products or Services of the {company} 
           separated by commas.
           
-    2. You must identify atleast one item either from Products or Services.\
+    2. You must identify atleast one item either from Products or Services.
         There's no upper limit as long as they are relevant.
     
     3. Make your response as accurate as possible without any explanation or notes.
 
-    4. Format your response only as one JSON object with \
+    4. Format your response only as one JSON object with 
         only "Products", "Services" and "Keywords" as the keys. 
-        If the information isn't present in the test, use "unknown" \
+        If the information isn't present in the test, use "unknown" 
         as the value.
         
     text: '''{text}'''
