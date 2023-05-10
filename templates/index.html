@@ -10,7 +10,26 @@
     <script src="assets/code.js"></script>
     <title>Data Search</title>
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='teamicon.ico') }}"/>
+    <style>
+  
+      .progress {
+        display: flex;
+        position: absolute;
+        width: 100%;
+      }
+      
+      .status {
+        color: black;
+        margin: auto;
+      }
+    
+      .status p {
+        font-weight: bold;
+      }
+      
+      </style>
   </head>
+<body>
       <br>
     <div class="container main">
   <div class="jumbotron center-block" id="holder">
@@ -46,6 +65,11 @@
   </div>
 </div>
 <br>
+<div class="progress">
+    <div class="status">
+      <p id="innerStatus">Loading...</p>
+    </div>
+</div>
 <!-- Footer -->
 <footer class="page-footer font-small blue">
 
@@ -62,4 +86,31 @@
 </footer>
 <!-- Footer -->
   </body>
+  <script>
+    var timeout;
+    
+    async function getStatus() {
+    
+      let get;
+      
+      try {
+        const res = await fetch("/status");
+        get = await res.json();
+      } catch (e) {
+        console.error("Error: ", e);
+      }
+      
+      document.getElementById("innerStatus").innerHTML ="Progress: " + get.status * 10 + "&percnt;";
+      
+      if (get.status == 10){
+        document.getElementById("innerStatus").innerHTML += " Done.";
+        clearTimeout(timeout);
+        return false;
+      }
+       
+      timeout = setTimeout(getStatus, 1000);
+    }
+    
+    getStatus();
+    </script>
 </html>
