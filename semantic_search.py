@@ -140,9 +140,9 @@ def clean_text(text):
 def semantic_search(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
-    samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
-    print(samples_urls)
-    output = crawl_se_level(samples_urls)
+    semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+    print(semantic_urls)
+    output = crawl_se_level(semantic_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
     #text_to_enc_div = handle_text(output["tag_text_div"])
     sample_text_p = semantic_search_tags(list_text=text_to_enc_p, query=query)
@@ -150,8 +150,8 @@ def semantic_search(query):
     srt_text_p = " ".join(sample_text_p)
     #srt_text_div = " ".join(sample_text_div)
     #srt_text = srt_text_p + " " + srt_text_div
-    srt_text = clean_text(srt_text_p)
-    return srt_text     
+    semantic_text = clean_text(srt_text_p)
+    return semantic_text  
         
 if __name__  == "__main__":
     query = "bosch germany"
@@ -163,4 +163,5 @@ if __name__  == "__main__":
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
    # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"
-   # load the model "model = AutoModel.from_from_pretrained("./models/checkpoint/")"
+   # load the model "model = AutoModel.from_from_pretrained("./models/checkpoint/")
+   
