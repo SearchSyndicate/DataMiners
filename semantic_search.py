@@ -1,6 +1,7 @@
 ## sementic search module
 import re
 from huggingchat import extract_info
+from crunchbase_api import get_products_from_text
 from crawl import crawl_se_level
 from crawl import crawl
 import faiss
@@ -41,7 +42,7 @@ def semantic_search_urls(extracted_url, query):
     embeddings_dataset.add_faiss_index(column="embeddings")
 
     # Search for similar URLs
-    question = f"{query} products and service"
+    question = f"{query} products, services and information (info)"
     question_embedding = get_embeddings([question]).cpu().detach().numpy()
     scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=10)
     return samples["urls"]
@@ -140,6 +141,7 @@ def semantic_search(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
     samples_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+    print(samples_urls)
     output = crawl_se_level(samples_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
     #text_to_enc_div = handle_text(output["tag_text_div"])
@@ -152,9 +154,10 @@ def semantic_search(query):
     return srt_text     
         
 if __name__  == "__main__":
-    query = "amazon"
+    query = "bosch germany"
     sample = semantic_search(query)
     output = extract_info(sample, query)
+    print(sample)
     print(output)
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
