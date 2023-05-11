@@ -100,7 +100,7 @@ def is_json(myjson):
     function to check if a string is JSON
   """
   try:
-    json.loads(myjson)
+    json.loads(str(myjson))
   except ValueError as e:
       print(str(e))
       return False
@@ -160,14 +160,14 @@ def prompting(prompt,helper=False):
         
     return output
 
-def get_products_from_text(text, company):
+def get_products_from_text(text, company, country):
     """
     Function to extract Product/Services from a text
     """
     
     #sample = semantic_search(company)
     helper_prompt = f"""You have to perform the following actions: 
-        1. Give a list of the products and services of {company}. 
+        1. Give a list of the products and services offered by {company}. 
         2. limit your words to only relevant words. 
         3. If no relevant results found then make sure to include word: "Fail" in the response."""
     sample = prompting(helper_prompt,helper=True)
@@ -178,10 +178,9 @@ def get_products_from_text(text, company):
     You have to perform the following actions: 
         
     1. Share the following informations about {company}:  
-        - list of Products sold by {company} separated by commas.
-        - list of Services offered by{company} separated by commas.
-        - list of Keywords about the Products or Services of the {company} 
-          separated by commas.
+        - list of Products sold by {company} across {country if country !="" else "the world"} separated by commas.
+        - list of Services offered by {company} across {country if country !="" else "the world"} separated by commas.
+        - list of Keywords about the Products or Services of the {company} separated by commas.
           
     2. You must identify atleast one item either from Products or Services.
         There's no upper limit as long as they are relevant.
@@ -190,8 +189,7 @@ def get_products_from_text(text, company):
 
     4. Format your response only as one JSON object with 
         only "Products", "Services" and "Keywords" as the keys. 
-        If the information isn't present in the test, use "unknown" 
-        as the value.
+        If the information isn't present in the test, use "unknown" as the value.
         
     text: '''{text}'''
     other helpful text: '''{sample}'''

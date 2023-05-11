@@ -22,7 +22,7 @@ status = None
 
 CORS(app)
 
-def get_company_details(api_query): 
+def get_company_details(api_query, country): 
     """
     returns company details based on an input query using get_uuid()
     gives location in addition description
@@ -65,7 +65,7 @@ def get_company_details(api_query):
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
         status = 4
-        company_products = get_products_from_text(company_description, company_name)
+        company_products = get_products_from_text(company_description, company_name, country)
         status = 5
         company_codes = classify_company(removeSpecialChars(company_products),company_name)
         print(company_codes,"company_codes")
@@ -117,7 +117,7 @@ def predict():
         
     search_type = request.form.get('scr_select')
  
-    prediction = get_company_details(text)
+    prediction = get_company_details(text, country_text)
         
     image_urls=[]
     if search_type=='With Images':

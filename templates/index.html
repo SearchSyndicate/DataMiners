@@ -9,6 +9,8 @@
     <link rel="stylesheet" type="text/css" href="assets/style.css">
     <script src="assets/code.js"></script>
     <title>Data Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='teamicon.ico') }}"/>
     <style>
   
@@ -16,6 +18,7 @@
         display: flex;
         position: absolute;
         width: 100%;
+        height:3% ;
       }
       
       .status {
@@ -29,14 +32,14 @@
       
       </style>
   </head>
-<body>
-      <br>
-    <div class="container main">
+<body >
+  <br>
+  <div class="container main">
   <div class="jumbotron center-block" id="holder">
         <h2 class='main_heading' style="color: rgb(46,116,181);"> Global Data Search Engine</h2>
      <p>The model can search: Products/services, based on the Company Name, Country or URL input.<br>
      <small style="color:#282828"> </small></p>
-      <h5 style="font-weight: 850;">Architecture : Bert, TextBlob, Backend : Flask, Ngrok</h5>
+      <h5 style="font-weight: 850;">Architecture : Transformers, LLMs; Backend : Flask, Ngrok</h5>
 
 
     <div class="instructions">
@@ -48,12 +51,15 @@
       <p>2. You will get a output as a result</p>
     </section>
     </div>
+    <div class="row">
+      <div class="col indent-1">
     <form enctype="multipart/form-data" style="border-radius: 8px;" class="form-horizontal" method="POST" action="/predict">
       <h4>Choose type of search:</h4>
         <select name="scr_select" class="selectpicker form-control">
           <option value="With out Images">With out Images</option>
           <option value="With Images">With Images</option>
         </select>
+        
         <h4>Query here:</h4>
         <input name="company_text" placeholder="Company e.g. Amazon">
         <input name="country_text" placeholder="Country e.g. USA">
@@ -61,7 +67,12 @@
         <br><br>
         <input style="border-radius: 8px;" class="button button5" type="submit">
     </form>
-    
+  </div>
+    <div class="col" style="float: right;">
+      <i class="fa fa-file" style="color:rgb(46,116,181)"></i> <a href='https://docs.google.com/document/d/15mXD-UCuRwpNOSjXQukNDeK-QAIRBs1J-fqJyQ4aQa4/edit?usp=sharing' target="_blank">Doc.</a>
+     </div>
+  
+  </div>
   </div>
 </div>
 <br>
@@ -73,11 +84,11 @@
 <!-- Footer -->
 <footer class="page-footer font-small blue">
 
-  <div id="container" class="footer-copyright text-center py-3">
+  <div id="container" class="footer-copyright text-center py-3" style="background: rgb(245,245,245);">
     <div class="bottom">
       <div class="col" style="text-align: center">
-        <a href="https://github.com/SearchSyndicate">
-        <img src="static/teamlogo.png" alt="logo" style='width: 100%; max-width: 250px; border-radius: 100px;'/>
+        <a href="https://github.com/SearchSyndicate" target="_blank">
+        <img src="static/teamlogo.png" alt="logo" style='width: 100%; max-width: 250px; border-radius: 25px;'/>
       </a>
     </div>
     </div>
