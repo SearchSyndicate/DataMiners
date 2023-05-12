@@ -14,7 +14,7 @@ import time
 from urls_info_retrive import domain_extract
 from gpt4free import theb
 from hugchat import hugchat
-#from semantic_search import semantic_search
+from semantic_search import semantic_search
 
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
@@ -112,7 +112,7 @@ def get_completion_theb(prompt):
     )
     return "".join([i for i in response])
 
-def prompting(prompt,helper=False):
+def prompting(prompt,company,helper=False):
     """
     Prompts theb 1st then in case of failure prompts Youchat
     and in case of failure in both, finally calls huggingchat 
@@ -120,10 +120,13 @@ def prompting(prompt,helper=False):
     
     output=None
     if helper:
-        api="theb"
-        output = get_completion_theb(prompt)
-        print(type(output))
-        print(api, output)
+        try:
+            api="theb"
+            output = get_completion_theb(prompt)
+            print(type(output))
+            print(api, output)
+        except:
+            output = semantic_search(company)
      
     if output==None :
         print(f"output={None} exception occurred in theb " )
@@ -165,12 +168,11 @@ def get_products_from_text(text, company, country):
     Function to extract Product/Services from a text
     """
     
-    #sample = semantic_search(company)
     helper_prompt = f"""You have to perform the following actions: 
         1. Give a list of the products and services offered by {company}. 
         2. limit your words to only relevant words. 
         3. If no relevant results found then make sure to include word: "Fail" in the response."""
-    sample = prompting(helper_prompt,helper=True)
+    sample = prompting(helper_prompt, company,helper=True)
     
     prompt = f"""
     Your task is to help a marketing team to give useful informations
@@ -195,7 +197,7 @@ def get_products_from_text(text, company, country):
     other helpful text: '''{sample}'''
     """
     time.sleep(5)
-    output = prompting(prompt)
+    output = prompting(prompt, company)
     return output
 
 
