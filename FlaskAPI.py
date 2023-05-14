@@ -66,7 +66,7 @@ def get_company_details(api_query, country):
         company_description = data['entities'][0]['properties']['short_description']
         status = 4
         company_products = get_products_from_text(company_description, company_name, country)
-        status = 5
+        status = 6
         company_codes = classify_company(removeSpecialChars(company_products),company_name)
         print(company_codes,"company_codes")
         status = 7

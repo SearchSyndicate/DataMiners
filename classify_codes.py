@@ -33,7 +33,10 @@ def classify_company(company_data,company):
                  and 6 digit North American Industry Classification System (NAICS) 2017 codes 
                  that are applicable to {company} as a company.
                  2. You can get relevant information about the company from text here: '''{company_data}'''
-                 3. Keep your response limited to only the numerical codes."""
+                 3. Keep your response limited to only the numerical codes which can be several in numbers.
+                 4. Format your response only as one JSON object with 
+                     only "SIC", "NAICS" as the keys and lists of respective codes as values. 
+                     If the information isn't present in the test, use "unknown" as the value."""
     answer=''            
     try:
         chatbot = hugchat.ChatBot()
@@ -45,7 +48,7 @@ def classify_company(company_data,company):
     except:
         print("Hugchat down")
     
-    if len(re.findall(r'\d+', answer))==0 or 'sorry' in answer:
+    if len(re.findall(r'\d+', answer))==0:
         answer = get_completion_theb(prompt)
         print(type(answer))
         print("theb",answer)
@@ -54,8 +57,8 @@ def classify_company(company_data,company):
     else:
         sic_text, naics_text = answer, answer           
  
-    sic_code = [i for i in re.findall(r'\d+', sic_text) if len(i)>2]
-    naics_code = [i for i in re.findall(r'\d+', naics_text) if len(i)>4]
+    sic_code = [i for i in re.findall(r'\d+', sic_text) if len(i)>2 and 'sic' in  answer.lower()]
+    naics_code = [i for i in re.findall(r'\d+', naics_text) if len(i)>3]
     
     if len(sic_code)==0 and len(naics_code)==0:
         

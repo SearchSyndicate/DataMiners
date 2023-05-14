@@ -127,6 +127,7 @@ def prompting(prompt,company,helper=False):
             print(api, output)
         except:
             output = semantic_search(company)
+            print("semantic_search", output)
      
     if output==None :
         print(f"output={None} exception occurred in theb " )
@@ -144,6 +145,8 @@ def prompting(prompt,company,helper=False):
             if not helper and not is_json(output):
                 error = f"{chat} error occurred"
                 output = {'Products':error, 'Services':error}
+        else:
+            output="{'Keywords':[]}"
         keywords_len=0    
         if is_json(output):
             keywords_len = len(eval(output)['Keywords'].split())

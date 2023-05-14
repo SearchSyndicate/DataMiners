@@ -1,7 +1,6 @@
 ## sementic search module
 import re
 from huggingchat import extract_info
-from crunchbase_api import get_products_from_text
 from crawl import crawl_se_level
 from crawl import crawl
 import faiss
@@ -13,8 +12,8 @@ from translation import aws_translation
 from translation import non_api_translation
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-#model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+#model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
