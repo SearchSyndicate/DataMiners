@@ -158,6 +158,7 @@ def semantic_search(query):
 if __name__  == "__main__":
     query = "bosch germany"
     semantic_txt, key_words = semantic_search(query)
+    output = extract_info(semantic_txt = semantic_txt, query=query)
     print(semantic_txt)
     #llm_output = extract_info(semantic_txt, query)
     #print(key_words)

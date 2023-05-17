@@ -12,3 +12,4 @@ datasets
 youdotcom
 hugchat
 summa
+python-dotenv

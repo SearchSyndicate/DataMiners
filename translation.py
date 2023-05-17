@@ -9,6 +9,17 @@
 # install boto3 to inailaize the service client $pip install boto3
 ### now you could run the code 
 
+# setting aws cerdentail with .env
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+os.environ['AWS_CONFIG_FILE'] = ''
+access_key = os.environ.get('AWS_ACCESS_KEY_ID')
+secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+region = os.environ.get('AWS_REGION')
+
+
 
 import boto3
 from translate import Translator
@@ -47,7 +58,7 @@ def non_api_translation(input_text):
 
 if __name__ == "__main__":
     try:
-        non_api_translation(input())
+        aws_translation("Je voudrais jouer avec Ahmed.")
     except Exception as e:
-        aws_translation(input())
+        non_api_translation("j'ai le pizza")
         
