@@ -10,6 +10,7 @@ from langdetect import detect
 from urls_info_retrive import get_url_from_name
 from translation import aws_translation
 from translation import non_api_translation
+from huggingchat import key_words_extraction
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
 model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
@@ -143,6 +144,8 @@ def semantic_search(query):
     print(semantic_urls)
     output = crawl_se_level(semantic_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
+    #extact keywords
+    key_words = key_words_extraction(text_to_enc_p)
     #text_to_enc_div = handle_text(output["tag_text_div"])
     sample_text_p = semantic_search_tags(list_text=text_to_enc_p, query=query)
     #sample_text_div = semantic_search_div(list_text=text_to_enc_div, query=query)
@@ -150,14 +153,15 @@ def semantic_search(query):
     #srt_text_div = " ".join(sample_text_div)
     #srt_text = srt_text_p + " " + srt_text_div
     semantic_text = clean_text(srt_text_p)
-    return semantic_text  
+    return semantic_text, key_words
         
 if __name__  == "__main__":
     query = "bosch germany"
-    sample = semantic_search(query)
-    output = extract_info(sample, query)
-    print(sample)
-    print(output)
+    semantic_txt, key_words = semantic_search(query)
+    print(semantic_txt)
+    #llm_output = extract_info(semantic_txt, query)
+    #print(key_words)
+    #print(llm_output)
    #print(sample_text)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")

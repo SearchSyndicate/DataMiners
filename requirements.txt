@@ -11,3 +11,4 @@ faiss-cpu
 datasets
 youdotcom
 hugchat
+summa
