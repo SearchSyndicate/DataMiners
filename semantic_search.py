@@ -11,6 +11,7 @@ from urls_info_retrive import get_url_from_name
 from translation import aws_translation
 from translation import non_api_translation
 from huggingchat import key_words_extraction
+from langdetect import detect
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
 #model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
@@ -116,11 +117,17 @@ def semantic_search_div(list_text, query):
 
 
 def handle_text(text, chunk_size=2000):
+   language = "en"
    text_to_enc = []
    for sub_text in text:
-      sub_text = " ".join(sub_text)
-      #sub_text = non_api_translation(sub_text)
-      text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
+    sub_text = " ".join(sub_text)
+    try:
+        language = detect(sub_text)
+    except Exception as e:
+        pass
+    if language != "en":
+        sub_text = aws_translation(sub_text)
+    text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
    return text_to_enc
 
 def clean_text(text):
@@ -154,7 +161,7 @@ def semantic_search(query, semantic_urls):
     return semantic_text, key_words
         
 if __name__  == "__main__":
-    query = "minigames company"
+    query = "bosch germany"
     semantic_urls = get_semantic_urls(query)
     semantic_txt, key_words = semantic_search(query,semantic_urls)
     output = extract_info(semantic_txt = semantic_txt, query=query)
@@ -164,4 +171,3 @@ if __name__  == "__main__":
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
    # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"
    # load the model "model = AutoModel.from_from_pretrained("./models/checkpoint/")
-   
