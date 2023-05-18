@@ -14,6 +14,7 @@ from flask_cors import CORS
 from threading import Thread
 from classify_codes import classify_company
 from flask import Flask,request,render_template
+from semantic_search import get_semantic_urls
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 ASSETS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -58,20 +59,23 @@ def get_company_details(api_query, country):
                              json=payload, headers=get_headers())
     data = json.loads(response.text)
     
+    url_dict={}
     if len(data['entities'])>0:
         status = 1
         company_name = data['entities'][0]['properties']['identifier']['value']
         status = 2
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
+        related_urls = get_semantic_urls(company_name)
         status = 4
-        company_products = get_products_from_text(company_description, company_name, country)
+        company_products = get_products_from_text(company_description, company_name, country, related_urls)
         status = 6
         company_codes = classify_company(removeSpecialChars(company_products),company_name)
         print(company_codes,"company_codes")
         status = 7
         company_details = {"Name":company_name,
                            "HQ Location":company_location,
+                           "Description" : company_description,
                            "SIC Codes":company_codes[0],
                            "NAICS Codes":company_codes[1]}
         status = 8
@@ -80,10 +84,13 @@ def get_company_details(api_query, country):
             company_details.update(company_products)
         else:
             company_details.update({"Products/Services":company_products})
+            
+        url_dict = {"Related URLs":list(set(related_urls))[:4]}
+        status = 9
     else:
         company_details = {"Error":"No results for this query"}
-        status = 9
-    return company_details
+        
+    return company_details, url_dict
 
 @app.route('/')
 def home():
@@ -117,12 +124,12 @@ def predict():
         
     search_type = request.form.get('scr_select')
  
-    prediction = get_company_details(text, country_text)
-        
+    prediction, url_dict = get_company_details(text, country_text)
+    print(url_dict,"url_dict")    
     image_urls=[]
     if search_type=='With Images':
-        image_urls = get_product_images(text)[:4]
-    return render_template('result.html',prediction = prediction,image_urls=image_urls)
+        image_urls = get_product_images(prediction["Name"])[:4]
+    return render_template('result.html',prediction = prediction,image_urls=image_urls, url_dict=url_dict)
 
 @app.route('/status', methods=['GET'])
 def getStatus():

@@ -9,7 +9,7 @@ Created on Mon May  8 00:26:30 2023
 import pandas as pd
 import json, re
 from hugchat import hugchat
-from crunchbase_api import get_completion_theb
+from GPTturboAPI import openai_api
 
 # Load the SIC and NAICS keyword lists
 sic_dict = json.load( open( "data/SIC_codes.json" ) )
@@ -25,33 +25,38 @@ def match_keywords(text, keywords):
 def classify_company(company_data,company):
     """
       function to extract industry codes from text using
-      1. LLMs (hugchat and theb as backup)
+      1. LLMs (openAI and hugchat as backup)
       2. string matching
     """
     prompt = f"""You have to perform the following actions: 
                  1. Give two seperate lists of 4 digit Standard Industrial Classification (SIC) 
                  and 6 digit North American Industry Classification System (NAICS) 2017 codes 
                  that are applicable to {company} as a company.
-                 2. You can get relevant information about the company from text here: '''{company_data}'''
+                 2. Use relevant information about the company from text here: '''{company_data}'''
                  3. Keep your response limited to only the numerical codes which can be several in numbers.
                  4. Format your response only as one JSON object with 
                      only "SIC", "NAICS" as the keys and lists of respective codes as values. 
                      If the information isn't present in the test, use "unknown" as the value."""
     answer=''            
     try:
-        chatbot = hugchat.ChatBot()
-        # Create a new conversation
-        id = chatbot.new_conversation()
-        chatbot.change_conversation(id)
-        answer = chatbot.chat(prompt)
-        print("hugchat",answer)   
+        api="OpenAI"
+        answer = openai_api(prompt)
+        print(type(answer))
+        print(api,answer)
+        
     except:
-        print("Hugchat down")
+        print("OpenAI down")
     
     if len(re.findall(r'\d+', answer))==0:
-        answer = get_completion_theb(prompt)
-        print(type(answer))
-        print("theb",answer)
+        try:
+            chatbot = hugchat.ChatBot(cookie_path="API_cookies/cookies.json")
+            # Create a new conversation
+            id = chatbot.new_conversation()
+            chatbot.change_conversation(id)
+            answer = (chatbot.chat(json.dumps({"chat":prompt})))
+            print("hugchat",answer)   
+        except:
+            print("hugchat down")
     if 'naics' in  answer.lower():
         sic_text, naics_text = answer.lower().split('naics',1)
     else:

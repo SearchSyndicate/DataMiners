@@ -136,11 +136,13 @@ def clean_text(text):
     #text = text.lower()
     return text
 
-
-def semantic_search(query):
+def get_semantic_urls(query):
     start_url = get_url_from_name(query)
     extracted_url = crawl(url=start_url)
     semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+    return semantic_urls
+
+def semantic_search(query, semantic_urls):
     print(semantic_urls)
     output = crawl_se_level(semantic_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])

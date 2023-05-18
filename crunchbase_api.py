@@ -12,9 +12,9 @@ import re
 import pandas as pd
 import time
 from urls_info_retrive import domain_extract
-from gpt4free import theb
 from hugchat import hugchat
 from semantic_search import semantic_search
+from GPTturboAPI import openai_api
 
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
@@ -106,31 +106,27 @@ def is_json(myjson):
       return False
   return True
 
-def get_completion_theb(prompt):
-    response = theb.Completion.create(
-        prompt,
-    )
-    return "".join([i for i in response])
 
-def prompting(prompt,company,helper=False):
+
+def prompting(prompt,company,semantic_urls, helper=False):
     """
-    Prompts theb 1st then in case of failure prompts Youchat
+    Prompts OpenAI 1st then in case of failure prompts Youchat
     and in case of failure in both, finally calls huggingchat 
     """
     
     output=None
     if helper:
         try:
-            api="theb"
-            output = get_completion_theb(prompt)
+            api="OpenAI"
+            output = openai_api(prompt)
             print(type(output))
             print(api, output)
         except:
-            output = semantic_search(company)
+            output = semantic_search(company, semantic_urls)
             print("semantic_search", output)
      
     if output==None :
-        print(f"output={None} exception occurred in theb " )
+        print(f"output={None} exception occurred in OpenAI " )
         
         api="Youchat"
         chat = "{api} API down"
@@ -153,11 +149,11 @@ def prompting(prompt,company,helper=False):
         if not len(output)>0 or keywords_len<4:
             try:
                 api="hugchat"
-                chatbot = hugchat.ChatBot()
+                chatbot = hugchat.ChatBot(cookie_path="API_cookies/cookies.json")
                 # Create a new conversation
                 id = chatbot.new_conversation()
                 chatbot.change_conversation(id)
-                output = (chatbot.chat(prompt))
+                output = (chatbot.chat(json.dumps({"chat":prompt})))
                 print(type(output))
                 print(api, output)
             except:
@@ -166,7 +162,7 @@ def prompting(prompt,company,helper=False):
         
     return output
 
-def get_products_from_text(text, company, country):
+def get_products_from_text(text, company, country, semantic_urls):
     """
     Function to extract Product/Services from a text
     """
@@ -174,8 +170,8 @@ def get_products_from_text(text, company, country):
     helper_prompt = f"""You have to perform the following actions: 
         1. Give a list of the products and services offered by {company}. 
         2. limit your words to only relevant words. 
-        3. If no relevant results found then make sure to include word: "Fail" in the response."""
-    sample = prompting(helper_prompt, company,helper=True)
+        3. If no products and services found then make sure to include word: "Fail" in the response."""
+    sample = prompting(helper_prompt, company, semantic_urls, helper=True)
     
     prompt = f"""
     Your task is to help a marketing team to give useful informations
@@ -200,7 +196,7 @@ def get_products_from_text(text, company, country):
     other helpful text: '''{sample}'''
     """
     time.sleep(5)
-    output = prompting(prompt, company)
+    output = prompting(prompt, company, semantic_urls)
     return output
 
 
