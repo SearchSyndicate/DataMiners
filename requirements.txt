@@ -13,3 +13,4 @@ youdotcom
 hugchat
 summa
 python-dotenv
+bardapi
