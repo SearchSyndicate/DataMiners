@@ -4,7 +4,10 @@ import requests
 
 bard_token = "Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ."
 
-def bard_api(semantic_txt, query):
+def bard_api(prompt):
+    prompt_l = prompt.split()
+    if len (prompt_l) > 4049:
+        prompt = " ".join(prompt_l[0:4049])
     os.environ['_BARD_API_KEY'] = bard_token
     # token='xxxxxxxxxxx'
     session = requests.Session()
@@ -18,8 +21,34 @@ def bard_api(semantic_txt, query):
             }
     session.cookies.set("__Secure-1PSID", os.getenv("_BARD_API_KEY")) 
     # session.cookies.set("__Secure-1PSID", token) 
-    ## input data
-    semantic_txt_l = semantic_txt.split()
+        
+    bard = Bard(session=session, timeout=30)
+    ans = bard.get_answer(prompt)['content']
+    ans = ans.split("json")[1]
+    ans = ans.split("```")[0]
+    return ans
+
+
+if __name__ == "__main__":
+    semantic_txt = '''Cleaning tools Bosch brings together comprehensive expertise in vehicle technology
+            with hardware software and services to offer complete mobility solutions Bosch offers innovative products and services for
+            industry and trades Bosch offers innovative products and services for industry and trades We look forward to your inquiry 
+            Explore Boschs wide range of products and solutions for your market and industry Heating cooling and wellbeing Power tools
+            Measuring tools Bosch brings together comprehensive expertise in vehicle technology with hardware software and services to 
+            offer complete mobility solutions Explore Boschs wide range of products and solutions for your market and industry Garden tools 
+            Home appliances Smart Home Find our PGP Key hereFingerprint F40C 0FE3 E919 B082 B2DD 75E5 929D 3AFD 217E 21D7 The Bosch
+            Product Security Incident Response Team PSIRT is the central point of contact for external security researchers partners
+            and customers to report cybersecurity information related to products developed by Bosch and its brands Responsible disclosure
+            of vulnerabilities has longerterm benefits because it allows us to fix vulnerabilities inform customers about fixes and
+            continuously improve security in our products If you believe you have identified a potential vulnerability or security 
+            issue in a Bosch product or service please contact us using our Vulnerability Reporting process We strongly encourage you
+            to encrypt all communication with the Bosch PSIRT Our SMIME and PGP public keys and fingerprints are available at the bottom
+            of each page Search our SMIME key hereFingerprint 87F16F7060D294838IKEA Family is for everyone. From those whose homes are
+            their passion, to those who are just starting out and need a helping hand. Just by being a member you’ll receive discounts
+            on many products! 2AC69F546867C807F861DF0'''
+    
+    query = 'Bosch Germany'
+    
     prompt = f"""
     Your task is to help a marketing team extract useful informations
     from a given text.
@@ -35,9 +64,6 @@ def bard_api(semantic_txt, query):
 
     3. Make each item of the above lists one or two words long, if possible. 
 
-    
-    3. Make each item of the above lists one or two words long, if possible. 
-    
     4. Make your response as short as possible without any explanation or notes.
 
     5. Format your response only as a JSON object with \
@@ -46,31 +72,8 @@ def bard_api(semantic_txt, query):
         as the value.      
     text: '''{semantic_txt}'''
     """
-    #openai_api(prompt, semantic_txt)
-        
-    bard = Bard(session=session, timeout=30)
-    ans = bard.get_answer(prompt)['content']
-    ans = ans.split("json")[1]
-    ans = ans.split("```")[0]
-    return ans
-
-if __name__ == "__main__":
-    text = '''Cleaning tools Bosch brings together comprehensive expertise in vehicle technology
-            with hardware software and services to offer complete mobility solutions Bosch offers innovative products and services for
-            industry and trades Bosch offers innovative products and services for industry and trades We look forward to your inquiry 
-            Explore Boschs wide range of products and solutions for your market and industry Heating cooling and wellbeing Power tools
-            Measuring tools Bosch brings together comprehensive expertise in vehicle technology with hardware software and services to 
-            offer complete mobility solutions Explore Boschs wide range of products and solutions for your market and industry Garden tools 
-            Home appliances Smart Home Find our PGP Key hereFingerprint F40C 0FE3 E919 B082 B2DD 75E5 929D 3AFD 217E 21D7 The Bosch Product Security Incident 
-            Response Team PSIRT is the central point of contact for external security researchers partners and customers to report cybersecurity
-            information related to products developed by Bosch and its brands Responsible disclosure of vulnerabilities has longerterm
-            benefits because it allows us to fix vulnerabilities inform customers about fixes and continuously improve security in 
-            our products If you believe you have identified a potential vulnerability or security issue in a Bosch product or 
-            service please contact us using our Vulnerability Reporting process We strongly encourage you to encrypt all communication
-            with the Bosch PSIRT Our SMIME and PGP public keys and fingerprints are available at the bottom of each page Search our
-            SMIME key hereFingerprint 87F16F7060D294838IKEA Family is for everyone. From those whose homes are their passion, to those who are just starting out
-            and need a helping hand. Just by being a member you’ll receive discounts on many products! 2AC69F546867C807F861DF0'''
-    response = bard_api(semantic_txt=text, query="Bosch Germany")
+    
+    response = bard_api(prompt=prompt)
     try:
         print(response)
     except Exception as e:
