@@ -8,7 +8,7 @@ Created on Wed May  3 21:17:09 2023
 
 import os, requests, json
 from crunchbase_api import (get_uuid, get_headers, get_main_company_name, get_products_from_text,
-                            removeSpecialChars, is_json)
+                            removeSpecialChars, is_json, name_comparison_score)
 from urls_info_retrive import get_product_images,domain_extract
 from flask_cors import CORS
 from threading import Thread
@@ -25,7 +25,7 @@ CORS(app)
 
 def get_company_details(api_query, country): 
     """
-    returns company details based on an input query using get_uuid()
+    returns company details based on an input query using get_uuid() from crunchbase api 
     gives location in addition description
     """
     global status
@@ -60,9 +60,10 @@ def get_company_details(api_query, country):
     data = json.loads(response.text)
     
     url_dict={}
-    if len(data['entities'])>0:
+    if len(data['entities'])>0 and\
+        name_comparison_score(data['entities'][0]['properties']['identifier']['value'],api_query)>0.25:
         status = 1
-        company_name = data['entities'][0]['properties']['identifier']['value']
+        company_name = get_main_company_name(data['entities'][0]['properties']['identifier']['value'])
         status = 2
         company_location = ", ".join([i['value'] for i in data['entities'][0]['properties']['location_identifiers']])
         company_description = data['entities'][0]['properties']['short_description']
@@ -78,18 +79,27 @@ def get_company_details(api_query, country):
                            "Description" : company_description,
                            "SIC Codes":company_codes[0],
                            "NAICS Codes":company_codes[1]}
-        status = 8
-        if is_json(str(company_products)):
-            company_products = json.loads(company_products)
-            company_details.update(company_products)
-        else:
-            company_details.update({"Products/Services":company_products})
-            
-        url_dict = {"Related URLs":list(set(related_urls))[:4]}
-        status = 9
     else:
-        company_details = {"Error":"No results for this query"}
+        status = 5
+        related_urls = get_semantic_urls(api_query)
+        status = 6
+        company_products = get_products_from_text(None, api_query, country, related_urls)
+        status = 7
+        company_codes = classify_company(removeSpecialChars(company_products),api_query)
+        print(company_codes,"company_codes")
+        company_details = {"Name":api_query,
+                           "SIC Codes":company_codes[0],
+                           "NAICS Codes":company_codes[1]}
+    status = 8
+    if is_json(str(company_products)):
+        company_products = json.loads(company_products)
+        company_details.update(company_products)
+    else:
+        company_details.update({"Products/Services":company_products})
         
+    url_dict = {"Related URLs":list(set(related_urls))[:4]}
+    status = 9
+   
     return company_details, url_dict
 
 @app.route('/')
@@ -108,7 +118,7 @@ def predict():
     uses function pred for classification and covert the result to JSON format
     """
     
-    company_text = get_main_company_name(request.form['company_text'])
+    company_text = request.form['company_text']
     country_text = request.form['country_text']
     url_text = request.form['url_text']
     text = company_text
