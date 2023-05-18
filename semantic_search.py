@@ -13,8 +13,8 @@ from translation import non_api_translation
 from huggingchat import key_words_extraction
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-#model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+#model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
@@ -136,9 +136,10 @@ def clean_text(text):
     #text = text.lower()
     return text
 
-def get_semantic_urls(query):
-    start_url = get_url_from_name(query)
-    extracted_url = crawl(url=start_url)
+def get_semantic_urls(query, url = None):
+    if not url:
+        url = get_url_from_name(query)
+    extracted_url = crawl(url=url)
     semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
     return semantic_urls
 
@@ -146,26 +147,19 @@ def semantic_search(query, semantic_urls):
     print(semantic_urls)
     output = crawl_se_level(semantic_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
-    #extact keywords
     key_words = key_words_extraction(text_to_enc_p)
-    #text_to_enc_div = handle_text(output["tag_text_div"])
     sample_text_p = semantic_search_tags(list_text=text_to_enc_p, query=query)
-    #sample_text_div = semantic_search_div(list_text=text_to_enc_div, query=query)
     srt_text_p = " ".join(sample_text_p)
-    #srt_text_div = " ".join(sample_text_div)
-    #srt_text = srt_text_p + " " + srt_text_div
     semantic_text = clean_text(srt_text_p)
     return semantic_text, key_words
         
 if __name__  == "__main__":
-    query = "bosch germany"
-    semantic_txt, key_words = semantic_search(query)
+    query = "minigames company"
+    semantic_urls = get_semantic_urls(query)
+    semantic_txt, key_words = semantic_search(query,semantic_urls)
     output = extract_info(semantic_txt = semantic_txt, query=query)
-    print(semantic_txt)
-    #llm_output = extract_info(semantic_txt, query)
-    #print(key_words)
-    #print(llm_output)
-   #print(sample_text)
+    print(output)
+
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
    # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"

@@ -12,7 +12,7 @@ def extract_info(semantic_txt, query):
     semantic_txt_l = semantic_txt.split()
     if len (semantic_txt_l) > 901:
         semantic_txt = " ".join(semantic_txt_l[0:900])
-    prompt = {'message':[{'role':'user', 'content': f"""
+    prompt = {'message':[{'role':'assistant', 'content': f"""
     Your task is to help a marketing team extract useful informations
     from a given text.
     You have to perform the following actions: 
