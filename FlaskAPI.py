@@ -24,7 +24,7 @@ status = None
 
 CORS(app)
 
-def get_company_details(api_query, country): 
+def get_company_details(api_query, country, url_text): 
     """
     returns company details based on an input query using get_uuid() from crunchbase api 
     gives location in addition description
@@ -82,7 +82,11 @@ def get_company_details(api_query, country):
                            "NAICS Codes":company_codes[1]}
     else:
         status = 5
-        related_urls = get_semantic_urls(api_query)
+        try:
+            if len(url_text)>0:
+                related_urls = get_semantic_urls(api_query, url_text)
+        except:
+            related_urls = get_semantic_urls(api_query)
         status = 6
         company_products = get_products_from_text(None, api_query, country, related_urls)
         status = 7
@@ -93,7 +97,7 @@ def get_company_details(api_query, country):
                            "NAICS Codes":company_codes[1]}
     status = 8
     if is_json(str(company_products)):
-        company_products = json.loads(company_products)
+        company_products = json.loads(str(company_products).replace("'", '"'))
         company_details.update(company_products)
     else:
         company_details.update({"Products/Services":company_products})
@@ -153,7 +157,7 @@ def predict():
         
     search_type = request.form.get('scr_select')
  
-    prediction, url_dict = get_company_details(text, country_text)
+    prediction, url_dict = get_company_details(text, country_text, url_text)
     print(url_dict,"url_dict")    
     image_urls=[]
     if search_type=='With Images' or ui == False:

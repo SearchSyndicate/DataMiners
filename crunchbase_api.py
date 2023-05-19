@@ -99,8 +99,9 @@ def is_json(myjson):
   """
     function to check if a string is JSON
   """
+  myjson = str(myjson).replace("'",'"')
   try:
-    json.loads(str(myjson))
+    json.loads(myjson)
   except ValueError as e:
       print(str(e))
       return False
@@ -138,14 +139,15 @@ def prompting(prompt,company,semantic_urls, helper=False):
             output = chat['generated_text']
             print(type(chat))
             print(api, output)
+            output = json.loads(re.search('({.+})', ' '.join(output.split('\n')).strip()).group(0).replace("'", '"'))
             if not helper and not is_json(output):
                 error = f"{chat} error occurred"
-                output = {'Products':error, 'Services':error}
+                output = {'Products':error, 'Services':error, 'Keywords':[]}
         else:
             output="{'Keywords':[]}"
         keywords_len=0    
         if is_json(output):
-            keywords_len = len(eval(output)['Keywords'].split())
+            keywords_len = len(eval(str((output)))['Keywords'].split())
         if not len(output)>0 or keywords_len<4:
             try:
                 api="hugchat"
@@ -169,8 +171,7 @@ def get_products_from_text(text, company, country, semantic_urls):
     
     helper_prompt = f"""You have to perform the following actions: 
         1. Give a list of the products and services offered by {company}. 
-        2. limit your words to only relevant words. 
-        3. If no products and services found then make sure to include word: "Fail" in the response."""
+        2. limit your words to only relevant words. """
     sample = prompting(helper_prompt, company, semantic_urls, helper=True)
     
     if text!=None:
