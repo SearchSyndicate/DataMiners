@@ -38,8 +38,7 @@ def aws_translation(input_text):
     )
 
     # Print the input language and the translated text
-    print(f"Detected input language: {response['SourceLanguageCode']}")
-    print(f"Translated text: {response['TranslatedText']}")
+    return response['TranslatedText']
 
 
 def non_api_translation(input_text):
@@ -58,7 +57,8 @@ def non_api_translation(input_text):
 
 if __name__ == "__main__":
     try:
-        aws_translation("Je voudrais jouer avec Ahmed.")
+        output = aws_translation("Je voudrais jouer avec Ahmed.")
+        print(output)
     except Exception as e:
         non_api_translation("j'ai le pizza")
         

@@ -15,9 +15,9 @@ from langdetect import detect
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
 try:
-    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-except:
     model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+except:
+    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
@@ -128,7 +128,10 @@ def handle_text(text, chunk_size=2000):
     except Exception as e:
         pass
     if language != "en":
-        sub_text = aws_translation(sub_text)
+        try:
+            sub_text = aws_translation(sub_text)
+        except Exception as e:
+            pass
     text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
    return text_to_enc
 
@@ -163,11 +166,11 @@ def semantic_search(query, semantic_urls):
     return semantic_text, key_words
         
 if __name__  == "__main__":
-    query = "bosch germany"
+    query = "eBay use"
     semantic_urls = get_semantic_urls(query)
     semantic_txt, key_words = semantic_search(query,semantic_urls)
     output = extract_info(semantic_txt = semantic_txt, query=query)
-    print(output)
+    print(semantic_txt)
 
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")

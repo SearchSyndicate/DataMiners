@@ -14,3 +14,4 @@ hugchat
 summa
 python-dotenv
 bardapi
+Flask-Cors==3.0.10
