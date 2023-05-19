@@ -19,6 +19,7 @@ from semantic_search import get_semantic_urls
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 ASSETS_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder='static')
+app.config['JSON_SORT_KEYS'] = False
 status = None
 
 CORS(app)
@@ -114,13 +115,31 @@ def home():
 @app.route('/predict' ,methods=['GET', 'POST'])
 def predict():
     """
-    Main API function which takes image from local storage with request and
-    uses function pred for classification and covert the result to JSON format
+    Main API function which takes input from UI or endpoint with request and
+    uses function 'get_company_details' to get the result in JSON format
     """
+    print(""""give params for company as per this sample:
+    predict?company=Amazon&country=USA&url=https://www.amazon.com/""")
+    ui = False
+    #inputs
+    try:
+        company_text = request.form['company_text']
+        ui = True
+    except:
+        company_text = request.args.get('company')
+        
+    try:
+        country_text = request.form['country_text']
+        ui = True
+    except:
+        country_text = request.args.get('country')
     
-    company_text = request.form['company_text']
-    country_text = request.form['country_text']
-    url_text = request.form['url_text']
+    try:
+        url_text = request.form['url_text']
+        ui = True
+    except:
+        url_text = request.args.get('url')
+        
     text = company_text
     
     #check if the input is an url 
@@ -137,14 +156,24 @@ def predict():
     prediction, url_dict = get_company_details(text, country_text)
     print(url_dict,"url_dict")    
     image_urls=[]
-    if search_type=='With Images':
+    if search_type=='With Images' or ui == False:
         image_urls = get_product_images(prediction["Name"])[:4]
-    return render_template('result.html',prediction = prediction,image_urls=image_urls, url_dict=url_dict)
+    if ui:
+        final_result= render_template('result.html',prediction = prediction,image_urls=image_urls, url_dict=url_dict)
+    else:
+        prediction.update(url_dict)
+        if len(image_urls)>0:
+            prediction.update({"image_urls":image_urls})
+        final_result = json.dumps(prediction)
+    return final_result
 
 @app.route('/status', methods=['GET'])
 def getStatus():
   statusList = {'status':status}
   return json.dumps(statusList)
 
+
 if __name__ == '__main__':
+    #example
+    #http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/
     app.run(debug=True)

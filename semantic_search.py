@@ -14,8 +14,10 @@ from huggingchat import key_words_extraction
 from langdetect import detect
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-#model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+try:
+    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+except:
+    model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
