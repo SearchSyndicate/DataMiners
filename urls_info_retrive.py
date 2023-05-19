@@ -9,6 +9,7 @@ Original file is located at
 ## global web scrapper
 """
 
+import re
 import requests
 import pandas as pd
 import tldextract
@@ -64,6 +65,17 @@ def get_url_from_name(query):
         print(start_url)
     
     return start_url
+
+def url_validation(url):
+    regex = re.compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+    return re.match(regex, url) is not None # True or false
 
 
 def extract_table(url):

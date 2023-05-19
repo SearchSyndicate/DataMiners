@@ -9,7 +9,7 @@ Created on Wed May  3 21:17:09 2023
 import os, requests, json
 from crunchbase_api import (get_uuid, get_headers, get_main_company_name, get_products_from_text,
                             removeSpecialChars, is_json, name_comparison_score)
-from urls_info_retrive import get_product_images,domain_extract
+from urls_info_retrive import get_product_images,domain_extract, url_validation
 from flask_cors import CORS
 from threading import Thread
 from classify_codes import classify_company
@@ -82,7 +82,7 @@ def get_company_details(api_query, country, url_text):
                            "NAICS Codes":company_codes[1]}
     else:
         status = 5
-        if len(url_text)>0:
+        if len(url_text)>0 and url_validation(url_text):
             related_urls = get_semantic_urls(api_query, url_text)
         else:
             related_urls = get_semantic_urls(api_query)
