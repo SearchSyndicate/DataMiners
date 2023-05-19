@@ -82,11 +82,11 @@ def get_company_details(api_query, country, url_text):
                            "NAICS Codes":company_codes[1]}
     else:
         status = 5
-        try:
-            if len(url_text)>0:
-                related_urls = get_semantic_urls(api_query, url_text)
-        except:
+        if len(url_text)>0:
+            related_urls = get_semantic_urls(api_query, url_text)
+        else:
             related_urls = get_semantic_urls(api_query)
+            
         status = 6
         company_products = get_products_from_text(None, api_query, country, related_urls)
         status = 7
@@ -180,4 +180,4 @@ def getStatus():
 if __name__ == '__main__':
     #example
     #http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0')
