@@ -65,8 +65,8 @@ def semantic_search_tags(list_text, query):
         return model_output.last_hidden_state[:,0]
 
     # Define a function for getting embeddings
-    def get_embeddings(url):
-        encoded_input = tokenizer(url, padding=True, truncation=True, return_tensors="pt")
+    def get_embeddings(tag):
+        encoded_input = tokenizer(tag, padding=True, truncation=True, return_tensors="pt")
         encoded_input = {k: v for k,v in encoded_input.items()}
         model_output = model(**encoded_input)
         return cls_pooling(model_output)
@@ -84,38 +84,6 @@ def semantic_search_tags(list_text, query):
 
     # Return the search results
     return list(samples["tags"])
-# here we define a semantic search over text which in df["tag_text_div"
-# input will be the df get out of crawl function 
-# Define a function for semantic search
-# Define a function for semantic search div data
-def semantic_search_div(list_text, query):
-    # Convert the extracted url to a dataset
-    dict_urls = {"div": list_text[0:5]}
-    dataset_url = Dataset.from_dict(dict_urls)
-
-    # Define a function for pooling the output of the model
-    def cls_pooling(model_output):
-        return model_output.last_hidden_state[:,0]
-    # Define a function for getting embeddings
-    def get_embeddings(url):
-        encoded_input = tokenizer(url, padding=True, truncation=True, return_tensors="pt")
-        encoded_input = {k: v for k,v in encoded_input.items()}
-        model_output = model(**encoded_input)
-        return cls_pooling(model_output)
-
-    # Embed the dataset
-    embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["div"]).cpu().detach().numpy()[0]}
-    )
-    embeddings_dataset.add_faiss_index(column="embeddings")
-
-    # Search for similar URLs
-    question = "What are the products and services of the company?"
-    question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=3)
-
-    # Return the search results
-    return list(samples["div"])
 
 
 def handle_text(text, chunk_size=2000):
@@ -166,9 +134,15 @@ def semantic_search(query, semantic_urls):
     return semantic_text, key_words
         
 if __name__  == "__main__":
+    # query = "eBay use"
+    # semantic_urls = get_semantic_urls(query)
+    # semantic_txt, key_words = semantic_search(query,semantic_urls)
+    # output = extract_info(semantic_txt = semantic_txt, query=query)
+    # print(semantic_txt)
+
     query = "eBay use"
-    semantic_urls = get_semantic_urls(query)
-    semantic_txt, key_words = semantic_search(query,semantic_urls)
+    semantic_urls = get_semantic_urls(query="Amazon")
+    semantic_txt, key_words = semantic_search(query="Amazon", semantic_urls = ['https://www.amazon.com/gp/css/homepage.html?ref=footer_ya'])
     output = extract_info(semantic_txt = semantic_txt, query=query)
     print(semantic_txt)
 
