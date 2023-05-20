@@ -123,7 +123,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
             print(type(output))
             print(api, output)
         except:
-            output = semantic_search(company, semantic_urls)
+            output, key_words = semantic_search(company, semantic_urls)
             print("semantic_search", output)
      
     if output==None :
