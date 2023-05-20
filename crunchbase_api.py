@@ -145,10 +145,13 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 output = {'Products':error, 'Services':error, 'Keywords':[]}
         else:
             output="{'Keywords':[]}"
+        output =  {k.lower(): v for k, v in output.items()}
         keywords_len=0    
         if is_json(output):
-            keywords_len = len(eval(str((output)))['Keywords'].split())
-        if not len(output)>0 or keywords_len<4:
+            keywords_len = len(eval(str((output)))['keywords'].split())
+        #check to prevent LLM Hallucinations
+        if not len(output)>0 or keywords_len<4 or \
+        not all(k in output for k in ("products","services","keywords")):
             try:
                 api="hugchat"
                 chatbot = hugchat.ChatBot(cookie_path="API_cookies/cookies.json")
