@@ -29,7 +29,7 @@ def get_headers():
     return headers
 
 def removeSpecialChars(string):
-    clean_string = re.sub(r"[^a-zA-Z0-9]+", ' ', str(string)).lower().strip()
+    clean_string = re.sub(r"[^a-zA-Z0-9,.:-]+", ' ', str(string)).lower().strip()
     return clean_string
 
 def name_comparison_score(name1,name2):
@@ -228,7 +228,7 @@ def get_products_from_text(text, company, country, semantic_urls):
             
         text: '''{sample}'''
         """
-    time.sleep(5)
+    time.sleep(2)
     output = prompting(prompt, company, semantic_urls)
     return output
 

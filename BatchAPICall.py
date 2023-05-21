@@ -8,11 +8,17 @@ Created on Sat May 20 16:47:47 2023
 import requests, json, time
 import pandas as pd
 
-def batch_call(df, n=50):
+def batch_call(df, n=50, sec_break=10):
     """
     Function to call crunchbase local api 'n' times in every 10 seconds 
     based on a dataframe (df) of inputs
+    Params: 
+        1. n: no. of inputs to be taken
+        2. sec_break: time break between 2 API calls
     """
+    df= df[:n]
+    start_time = time.time()
+    
     errors=[]
     desc_dict={}
     for index, row in df.iterrows():
@@ -30,18 +36,18 @@ def batch_call(df, n=50):
             desc_dict[company] = json.loads(response.text)
         else:
             # Add the company to the error list
-            errors.append((company,response.text))
-        print(f"Taking a 10 sec. break...{index+1}\n")
+            errors.append((company,response.status_code))
+        print(f"Taking a {sec_break} sec. break...{index+1}\n")
         time.sleep(10)
         
         # Check if all inputs have been given
         if index == len(df) - 1:
             print("All inputs have been processed.")
+            print(f"Execution time: --- {round((time.time() - start_time)/60,2)} minutes ---")
             return errors,desc_dict
         
 if __name__ == '__main__':
  
-    input_df = pd.read_csv("data/unicorn-company-list.csv",keep_default_na=False)[:2]
-    input_df['URL']=''
+    input_df = pd.read_csv("data/unicorn-company-list-with_URLs.csv",keep_default_na=False)
     errors,desc_dict = batch_call(input_df)
     desc_df = pd.DataFrame.from_dict(desc_dict,orient='index')

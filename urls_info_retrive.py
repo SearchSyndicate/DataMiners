@@ -40,8 +40,12 @@ def get_url_from_name(query):
     # Send the API request
     response = requests.get(url)
 
+    data={'Results':False}
     # Parse the JSON response
-    data = response.json()
+    try:
+        data = response.json()
+    except:
+        print(response.text)
 
     if data['Results']:
         # Define the starting URL for crawling
@@ -124,7 +128,6 @@ def get_product_images(company_name):
                 image_urls.append(result.get("link"))
 
     return image_urls
-
 
 if __name__ == '__main__':
     # Define a function to crawl a URL and extract relevant information

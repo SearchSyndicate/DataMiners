@@ -168,7 +168,7 @@ def predict():
     else:
         prediction.update(url_dict)
         if len(image_urls)>0:
-            prediction.update({"image_urls":image_urls})
+            prediction.update({"Image URLs":image_urls})
         final_result = json.dumps(prediction)
     return final_result
 
