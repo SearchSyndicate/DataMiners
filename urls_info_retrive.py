@@ -60,7 +60,10 @@ def get_url_from_name(query):
 
         # Parse the JSON response and extract the search results
         json_data = response.json()
-        search_results = json_data["items"]
+        try:
+            search_results = json_data["items"]
+        except Exception as e:
+            print("daily quota runout")
         urls = []
         # Print the URLs of the search results
         for result in search_results:
@@ -131,6 +134,7 @@ def get_product_images(company_name):
 
 if __name__ == '__main__':
     # Define a function to crawl a URL and extract relevant information
-    query= 'IKEA'
+    query= 'Amazon'
     start_url = get_url_from_name(query)
-    image_urls = get_product_images(query)
+    #image_urls = get_product_images(query)
+    print(start_url)
