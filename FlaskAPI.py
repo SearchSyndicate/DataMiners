@@ -92,7 +92,8 @@ def get_company_details(api_query, country, url_text):
         status = 7
         company_codes = classify_company(removeSpecialChars(company_products),api_query)
         print(company_codes,"company_codes")
-        company_details = {"Name":api_quer                           "Location":country if country!='' else "world wide",
+        company_details = {"Name":api_query,
+                           "Location":country if country!='' else "world wide",
                            "SIC Codes":company_codes[0],
                            "NAICS Codes":company_codes[1]}
     status = 8

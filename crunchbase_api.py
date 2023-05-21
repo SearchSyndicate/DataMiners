@@ -133,19 +133,24 @@ def prompting(prompt,company,semantic_urls, helper=False):
         chat = "{api} API down"
         response =requests.get(f"https://api.betterapi.net/youchat?inputs={prompt}&key={you_api_key}",
                            headers=get_headers())
-        chat= json.loads(response.text)
-        if chat['status_code']==200 and 'str' not in str(type(chat))\
-        and 'sorry' not in str(chat): 
-            output = chat['generated_text']
-            print(type(chat))
-            print(api, output)
-            output = json.loads(re.search('({.+})', ' '.join(output.split('\n')).strip()).group(0).replace("'", '"'))
-            if not helper and not is_json(output):
-                error = f"{chat} error occurred"
-                output = {'Products':error, 'Services':error, 'Keywords':[]}
+        
+        if response.status_code==200:
+            chat= json.loads(response.text)
+            if 'str' not in str(type(chat))\
+            and 'sorry' not in str(chat): 
+                output = chat['generated_text']
+                print(type(chat))
+                print(api, output)
+                try:
+                    output = json.loads(re.search('({.+})', ' '.join(output.split('\n')).strip()).group(0).replace("'", '"'))
+                except:
+                    print(f"JSON not returnd with {api}")
+                if not helper and not is_json(output):
+                    error = f"{chat} error occurred"
+                    output = {'Products':error, 'Services':error, 'Keywords':[]}
         else:
-            output="{'Keywords':[]}"
-        output =  {k.lower(): v for k, v in output.items()}
+            output="{'Keywords':''}"
+        output =  {k.lower(): v for k, v in eval(str((output))).items()}
         keywords_len=0    
         if is_json(output):
             keywords_len = len(eval(str((output)))['keywords'].split())
@@ -184,9 +189,9 @@ def get_products_from_text(text, company, country, semantic_urls):
         You have to perform the following actions: 
             
         1. Share the following informations about {company}:  
-            - list of Products sold by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of Services offered by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of Keywords about the Products or Services of the {company} separated by commas.
+            - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
+            - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
+            - list of all Keywords about the Products or Services of the {company} separated by commas.
               
         2. You must identify atleast one item either from Products or Services.
             There's no upper limit as long as they are relevant.
@@ -208,9 +213,9 @@ def get_products_from_text(text, company, country, semantic_urls):
             
         1. Share the following informations about {company}: 
             - Extract a brief description about {company} in a sentence from the given text.
-            - list of Products sold by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of Services offered by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of Keywords about the Products or Services of the {company} separated by commas.
+            - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
+            - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
+            - list of all Keywords about the Products or Services of the {company} separated by commas.
               
         2. You must identify atleast one item either from Products or Services.
             There's no upper limit as long as they are relevant.
