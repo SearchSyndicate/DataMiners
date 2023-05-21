@@ -130,14 +130,12 @@ def prompting(prompt,company,semantic_urls, helper=False):
     if output==None :
         
         api="Youchat"
-        chat = "{api} API down"
+        chat = f"{api} API down"
         response =requests.get(f"https://api.betterapi.net/youchat?inputs={prompt}&key={you_api_key}",
                            headers=get_headers())
-        
-        if response.status_code==200:
-            chat= json.loads(response.text)
-            if 'str' not in str(type(chat))\
-            and 'sorry' not in str(chat): 
+        chat= json.loads(response.text)
+        if response.status_code==200 or 'error' not in str(type(chat['generated_text'])):
+            if 'sorry' not in str(chat): 
                 output = chat['generated_text']
                 print(type(chat))
                 print(api, output)
@@ -146,30 +144,34 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 except:
                     print(f"JSON not returnd with {api}")
                 if not helper and not is_json(output):
-                    error = f"{chat} error occurred"
+                    error = f"{chat['generated_text']} error occurred"
                     output = {'Products':error, 'Services':error, 'Keywords':[]}
         else:
             output="{'Keywords':''}"
-        output =  {k.lower(): v for k, v in eval(str((output))).items()}
-        keywords_len=0    
-        if is_json(output):
-            keywords_len = len(eval(str((output)))['keywords'].split())
-        #check to prevent LLM Hallucinations
-        if not len(output)>0 or keywords_len<4 or \
-        not all(k in output for k in ("products","services","keywords")):
-            try:
-                api="hugchat"
-                chatbot = hugchat.ChatBot(cookie_path="API_cookies/cookies.json")
-                # Create a new conversation
-                id = chatbot.new_conversation()
-                chatbot.change_conversation(id)
-                output = (chatbot.chat(json.dumps({"chat":prompt})))
-                print(type(output))
-                print(api, output)
+        if output!=None:
+            output =  {k.lower(): v for k, v in eval(str((output))).items()}
+            keywords_len=0  
+            try:  
+                if is_json(output):
+                    keywords_len = len(eval(str((output)))['keywords'].split())
             except:
-                error = "Hugchat down"
-                output = {'Products':error, 'Services':error}
-        if len(parse_llm_text(output)['Keywords'])=='unknown':
+                print(f"JSON not returnd with {api}")
+            #check to prevent LLM Hallucinations
+            if not len(output)>0 or keywords_len<4 or \
+            not all(k in output for k in ("products","services","keywords")):
+                try:
+                    api="hugchat"
+                    chatbot = hugchat.ChatBot(cookie_path="API_cookies/cookies.json")
+                    # Create a new conversation
+                    id = chatbot.new_conversation()
+                    chatbot.change_conversation(id)
+                    output = (chatbot.chat(json.dumps({"chat":prompt})))
+                    print(type(output))
+                    print(api, output)
+                except:
+                    error = "Hugchat down"
+                    output = {'Products':error, 'Services':error}
+        if parse_llm_text(output)['Keywords']=='unknown':
             api="OpenAI"
             output = openai_api(prompt)
             print(type(output))
@@ -239,18 +241,36 @@ def get_products_from_text(text, company, country, semantic_urls):
 def parse_llm_text(string):
     output={}
     string = removeSpecialChars(string)
-    
+    products_str=services_str=keywords_str=''
     products_match = re.search("products :", string.lower())
     services_match = re.search("services :", string.lower())
     keywords_match = re.search("keywords :", string.lower())
-
-    products_str = string[products_match.end():services_match.start()].lstrip().rstrip()
-    services_str = string[services_match.end():keywords_match.start()].lstrip().rstrip()
-    keywords_str = string[keywords_match.end():].lstrip().rstrip()
+    
+    if not products_match:
+        products_match = re.search("Products", string)
+    if not products_match:
+        products_match = re.search("Product", string)
+        
+    if not services_match:
+        services_match = re.search("Services", string)
+    if not services_match:
+        services_match = re.search("Service", string)
+        
+    if not keywords_match:
+        keywords_match = re.search("Keywords", string)
+    if not keywords_match:
+        keywords_match = re.search("Keyword", string)
+        
+    if products_match and services_match and keywords_match:
+        products_str = string[products_match.end():services_match.start()].lstrip().rstrip()
+        services_str = string[services_match.end():keywords_match.start()].lstrip().rstrip()
+        keywords_str = string[keywords_match.end():].lstrip().rstrip()
+    
     if "description" in string.lower():
         description_match = re.search("description :", string.lower())
-        description_str = string[description_match.end():products_match.start()].lstrip().rstrip()
-        output["Description"] = description_str.rstrip(", ") if description_str !="" else "unknown"
+        if description_match:
+            description_str = string[description_match.end():products_match.start()].lstrip().rstrip()
+            output["Description"] = description_str.rstrip(", ") if description_str !="" else "unknown"
     output["Products"] = products_str.rstrip(", ") if products_str !="" else "unknown"
     output["Services"] = services_str.rstrip(", ") if services_str !="" else "unknown"
     output["Keywords"] = keywords_str.rstrip(", ") if keywords_str !="" else "unknown"
