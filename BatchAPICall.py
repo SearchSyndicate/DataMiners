@@ -38,7 +38,7 @@ def batch_call(df, n=50, sec_break=10):
             # Add the company to the error list
             errors.append((company,response.status_code))
         print(f"Taking a {sec_break} sec. break...{index+1}\n")
-        time.sleep(10)
+        time.sleep(sec_break)
         
         # Check if all inputs have been given
         if index == len(df) - 1:
@@ -49,5 +49,5 @@ def batch_call(df, n=50, sec_break=10):
 if __name__ == '__main__':
  
     input_df = pd.read_csv("data/unicorn-company-list-with_URLs.csv",keep_default_na=False)
-    errors,desc_dict = batch_call(input_df)
+    errors,desc_dict = batch_call(input_df,sec_break=2)
     desc_df = pd.DataFrame.from_dict(desc_dict,orient='index')

@@ -29,7 +29,8 @@ def get_headers():
     return headers
 
 def removeSpecialChars(string):
-    clean_string = re.sub(r"[^a-zA-Z0-9,.:-]+", ' ', str(string)).lower().strip()
+    clean_string = re.sub(r"[^a-zA-Z0-9,'./:-]+", ' ', str(string)).strip()
+    clean_string = clean_string.replace("key :","").replace(", value :",":").replace("/u","").replace('&amp;','')
     return clean_string
 
 def name_comparison_score(name1,name2):
@@ -127,7 +128,6 @@ def prompting(prompt,company,semantic_urls, helper=False):
             print("semantic_search", output)
      
     if output==None :
-        print(f"output={None} exception occurred in OpenAI " )
         
         api="Youchat"
         chat = "{api} API down"
@@ -169,7 +169,11 @@ def prompting(prompt,company,semantic_urls, helper=False):
             except:
                 error = "Hugchat down"
                 output = {'Products':error, 'Services':error}
-        
+        if len(parse_llm_text(output)['Keywords'])=='unknown':
+            api="OpenAI"
+            output = openai_api(prompt)
+            print(type(output))
+            print(api, output)
     return output
 
 def get_products_from_text(text, company, country, semantic_urls):
@@ -232,7 +236,25 @@ def get_products_from_text(text, company, country, semantic_urls):
     output = prompting(prompt, company, semantic_urls)
     return output
 
+def parse_llm_text(string):
+    output={}
+    string = removeSpecialChars(string)
+    
+    products_match = re.search("products :", string.lower())
+    services_match = re.search("services :", string.lower())
+    keywords_match = re.search("keywords :", string.lower())
 
+    products_str = string[products_match.end():services_match.start()].lstrip().rstrip()
+    services_str = string[services_match.end():keywords_match.start()].lstrip().rstrip()
+    keywords_str = string[keywords_match.end():].lstrip().rstrip()
+    if "description" in string.lower():
+        description_match = re.search("description :", string.lower())
+        description_str = string[description_match.end():products_match.start()].lstrip().rstrip()
+        output["Description"] = description_str.rstrip(", ") if description_str !="" else "unknown"
+    output["Products"] = products_str.rstrip(", ") if products_str !="" else "unknown"
+    output["Services"] = services_str.rstrip(", ") if services_str !="" else "unknown"
+    output["Keywords"] = keywords_str.rstrip(", ") if keywords_str !="" else "unknown"
+    return output
 
 def batch_call_api(df):
     """

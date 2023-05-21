@@ -8,7 +8,7 @@ Created on Wed May  3 21:17:09 2023
 
 import os, requests, json
 from crunchbase_api import (get_uuid, get_headers, get_main_company_name, get_products_from_text,
-                            removeSpecialChars, is_json, name_comparison_score)
+                            removeSpecialChars, is_json, name_comparison_score, parse_llm_text)
 from urls_info_retrive import get_product_images,domain_extract, url_validation
 from flask_cors import CORS
 from threading import Thread
@@ -97,6 +97,7 @@ def get_company_details(api_query, country, url_text):
                            "SIC Codes":company_codes[0],
                            "NAICS Codes":company_codes[1]}
     status = 8
+    company_products = parse_llm_text(company_products)
     if is_json(str(company_products)):
         company_products = json.loads(str(company_products).replace("'", '"'))
         company_details.update(company_products)
