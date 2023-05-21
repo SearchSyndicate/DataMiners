@@ -145,7 +145,7 @@ if __name__  == "__main__":
     semantic_txt, key_words = semantic_search(query="Amazon", semantic_urls = ['https://www.amazon.com/gp/css/homepage.html?ref=footer_ya'])
     output = extract_info(semantic_txt = semantic_txt, query=query)
     print(semantic_txt)
-
+    print(key_words)
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
    # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"
