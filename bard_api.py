@@ -24,8 +24,14 @@ def bard_api(prompt):
         
     bard = Bard(session=session, timeout=30)
     ans = bard.get_answer(prompt)['content']
-    ans = ans.split("```json")[1]
-    ans = ans.split("```")[0]
+    try:
+        ans = ans.split("```json")[1]
+        ans = ans.split("```")[0]
+    except:
+        try:
+            ans = ans.split("json")[1]
+        except:
+            print(ans)
     return ans
 
 
