@@ -2,7 +2,7 @@ import os
 from bardapi import Bard
 import requests
 
-bard_token = "Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ."
+#bard_token = "Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ."
 
 def bard_api(prompt):
     prompt_l = prompt.split()
@@ -69,9 +69,15 @@ Yandex has established itself as a prominent player in the Russian technology in
     text: '''{semantic_txt}'''
     """
     
-    response = bard_api(prompt=prompt)
-    for _ in range(10):
-        try:
-            print(response)
-        except Exception as e:
-            print(e)
+    from bardapi import Bard
+    token = 'Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ.'
+    bard = Bard(token=token)
+    result = bard.get_answer(prompt)['content']
+    print(result)
+    
+    # for _ in range(10):
+    #     try:
+    #         response = bard_api(prompt=prompt)
+    #         print(response)
+    #     except Exception as e:
+    #         print(e)
