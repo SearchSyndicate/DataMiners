@@ -14,8 +14,10 @@ import requests
 import pandas as pd
 import tldextract
 
-GOOGLE_SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
-GOOGLE_API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
+GOOGLE_SEARCH_ENGINE_ID = "44a2a67daad9a4e5b"
+#GOOGLE_SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
+GOOGLE_API_KEY ="AIzaSyCJfES1K7d3DdK_SmzEicJ90LuMCPI3Low" 
+#GOOGLE_API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
 
 ## function to extract info
 def domain_extract(url):
@@ -62,15 +64,14 @@ def get_url_from_name(query):
         json_data = response.json()
         try:
             search_results = json_data["items"]
+            urls = []
+            # Print the URLs of the search results
+            for result in search_results:
+                urls.append(result["link"])
+            start_url = urls[0]
+            print(start_url)
         except Exception as e:
             print("daily quota runout")
-        urls = []
-        # Print the URLs of the search results
-        for result in search_results:
-            urls.append(result["link"])
-        start_url = urls[0]
-        print(start_url)
-    
     return start_url
 
 def url_validation(url):

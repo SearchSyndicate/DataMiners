@@ -98,11 +98,7 @@ def get_company_details(api_query, country, url_text):
                            "NAICS Codes":company_codes[1]}
     status = 8
     company_products = parse_llm_text(company_products)
-    if is_json(str(company_products)):
-        company_products = json.loads(str(company_products).replace("'", '"'))
-        company_details.update(company_products)
-    else:
-        company_details.update({"Products/Services":company_products})
+    company_details.update(company_products)
         
     url_dict = {"Related URLs":list(set(related_urls))[:4]}
     status = 9
@@ -125,8 +121,9 @@ def predict():
     uses function 'get_company_details' to get the result in JSON format
     """
     print(""""give params for company as per this sample:
-    predict?company=Amazon&country=USA&url=https://www.amazon.com/""")
+    predict?company=Amazon&country=USA&url=https://www.amazon.com/&image=""")
     ui = False
+    image_choice=''
     #inputs
     try:
         company_text = request.form['company_text']
@@ -145,6 +142,10 @@ def predict():
         ui = True
     except:
         url_text = request.args.get('url')
+    try:
+        search_type = request.form.get('scr_select') 
+    except:
+        image_choice = request.args.get('image')  
         
     text = company_text
     
@@ -156,13 +157,11 @@ def predict():
     #then country name will be the input query
     elif company_text+url_text+country_text==country_text:
         text = country_text
-        
-    search_type = request.form.get('scr_select')
  
     prediction, url_dict = get_company_details(text, country_text, url_text)
     print(url_dict,"url_dict")    
     image_urls=[]
-    if search_type=='With Images' or ui == False:
+    if search_type=='With Images' or image_choice:
         image_urls = get_product_images(prediction["Name"])[:4]
     if ui:
         final_result= render_template('result.html',prediction = prediction,image_urls=image_urls, url_dict=url_dict)
@@ -181,5 +180,5 @@ def getStatus():
 
 if __name__ == '__main__':
     #example
-    #http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/
+    #http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/&image=
     app.run(debug=True,host='0.0.0.0')
