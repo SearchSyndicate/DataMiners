@@ -18,7 +18,7 @@ In both the above cases, to get the response without UI, run below given code in
 Code:
 ````
 import requests
-response = requests.get("http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/")
+response = requests.get("http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=https://www.amazon.com/&image=")
 ````
 
 >Note : the endpoint without an url input will look like this: "http://127.0.0.1:5000/predict?company=Amazon&country=USA&url=&image="
