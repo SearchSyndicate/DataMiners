@@ -52,6 +52,6 @@ if __name__ == '__main__':
     input_df = pd.read_csv("data/unicorn-company-list-with_URLs.csv",keep_default_na=False)
     #1st ensure that the Flask api is running 
     #image=y (if image urls are needed)
-    errors,desc_dict = batch_call(input_df,sec_break=2)
+    errors,desc_dict = batch_call(input_df,sec_break=5)
     #final result
     desc_df = pd.DataFrame.from_dict(desc_dict,orient='index')

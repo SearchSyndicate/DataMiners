@@ -1,6 +1,4 @@
 import requests
-import bardapi
-import os
 
 def openai_api(prompt):
     api_key = "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"
@@ -21,7 +19,11 @@ def openai_api(prompt):
         json=data)
 
     result = response.json()
-    return result['choices'][0]['message']['content']
+    if 'choices' in result.keys():
+        final_result = result['choices'][0]['message']['content']
+    else:
+        final_result = "Quota exceeded"
+    return final_result
 
 if __name__ == '__main__':
     semantic_txt = '''Cleaning tools Bosch brings together comprehensive expertise in vehicle technology

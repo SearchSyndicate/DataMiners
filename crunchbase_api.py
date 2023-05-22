@@ -123,6 +123,9 @@ def prompting(prompt,company,semantic_urls, helper=False):
             output = openai_api(prompt)
             print(type(output))
             print(api, output)
+            if output=="Quota exceeded":
+                output, key_words = semantic_search(company, semantic_urls)
+                print("semantic_search", output)
         except:
             output, key_words = semantic_search(company, semantic_urls)
             print("semantic_search", output)
@@ -183,9 +186,8 @@ def get_products_from_text(text, company, country, semantic_urls):
     Function to extract Product/Services from a text
     """
     
-    helper_prompt = f"""You have to perform the following actions: 
-        1. Give a list of the products and services offered by {company}. 
-        2. limit your words to only relevant words. """
+    helper_prompt = f"""Give a list of the products and services offered by {company}. 
+                        Limit your words to only relevant words. """
     sample = prompting(helper_prompt, company, semantic_urls, helper=True)
     
     if text!=None:
