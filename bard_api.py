@@ -2,7 +2,7 @@ import os
 from bardapi import Bard
 import requests
 
-#bard_token = "Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ."
+bard_token = "Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ."
 
 def bard_api(prompt):
     prompt_l = prompt.split()
@@ -25,13 +25,11 @@ def bard_api(prompt):
     bard = Bard(session=session, timeout=30)
     ans = bard.get_answer(prompt)['content']
     try:
-        ans = ans.split("```json")[1]
-        ans = ans.split("```")[0]
+        ans = ans.split("{")[1]
+        ans = ans.split("}")[0]
+        ans = "{" + ans + "}"
     except:
-        try:
-            ans = ans.split("json")[1]
-        except:
-            print(ans)
+        print(f"holetest : {ans}")
     return ans
 
 
@@ -69,15 +67,15 @@ Yandex has established itself as a prominent player in the Russian technology in
     text: '''{semantic_txt}'''
     """
     
-    from bardapi import Bard
-    token = 'Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ.'
-    bard = Bard(token=token)
-    result = bard.get_answer(prompt)['content']
-    print(result)
+    # from bardapi import Bard
+    # token = 'Wgh_oONK6LFFZpxjYymYYdJuEEAMGyIxTROlac1hEJBaiFTNO6qEDQzTTeDaLOLD1maoOQ.'
+    # bard = Bard(token=token)
+    # result = bard.get_answer(prompt)['content']
+    # print(result)
     
-    # for _ in range(10):
-    #     try:
-    #         response = bard_api(prompt=prompt)
-    #         print(response)
-    #     except Exception as e:
-    #         print(e)
+    for _ in range(10):
+        try:
+            response = bard_api(prompt=prompt)
+            print(response)
+        except Exception as e:
+            print(e)
