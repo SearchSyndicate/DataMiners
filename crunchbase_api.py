@@ -119,11 +119,11 @@ def prompting(prompt,company,semantic_urls, helper=False):
     output=None
     if helper:
         try:
-            api="OpenAI"
+            api="OpenAI 1"
             output = openai_api(prompt)
             print(type(output))
             print(api, output)
-            if output=="Quota exceeded":
+            if "Quota exceeded" in output or len(output)<60:
                 output, key_words = semantic_search(company, semantic_urls)
                 print("semantic_search", output)
         except:
@@ -149,14 +149,15 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 if not helper and not is_json(output):
                     error = f"{chat['generated_text']} error occurred"
                     output = {'Products':error, 'Services':error, 'Keywords':[]}
+                    print(api, output)
         else:
             output="{'Keywords':''}"
         if output!=None:
-            output =  {k.lower(): v for k, v in eval(str((output))).items()}
+            output =  {k.lower(): v for k, v in eval(str(output)).items()}
             keywords_len=0  
             try:  
                 if is_json(output):
-                    keywords_len = len(eval(str((output)))['keywords'].split())
+                    keywords_len = len(eval(str((output)))['keywords'].split(","))
             except:
                 print(f"JSON not returnd with {api}")
             #check to prevent LLM Hallucinations
@@ -175,7 +176,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     error = "Hugchat down"
                     output = {'Products':error, 'Services':error}
         if parse_llm_text(output)['Keywords']=='unknown':
-            api="OpenAI"
+            api="OpenAI 2"
             output = openai_api(prompt)
             print(type(output))
             print(api, output)
@@ -252,16 +253,22 @@ def parse_llm_text(string):
         products_match = re.search("Products", string)
     if not products_match:
         products_match = re.search("Product", string)
+    if not products_match:
+        products_match = re.search("'products':", string)
         
     if not services_match:
         services_match = re.search("Services", string)
     if not services_match:
         services_match = re.search("Service", string)
+    if not services_match:
+        services_match = re.search("'services':", string)
         
     if not keywords_match:
         keywords_match = re.search("Keywords", string)
     if not keywords_match:
         keywords_match = re.search("Keyword", string)
+    if not keywords_match:
+        keywords_match = re.search("'keywords':", string)
         
     if products_match and services_match and keywords_match:
         products_str = string[products_match.end():services_match.start()].lstrip().rstrip()

@@ -149,13 +149,9 @@ def predict():
         
     text = company_text
     
-    #check if the input is an url 
-    #if so then domain name will be the input query
-    if url_text!='' and domain_extract(url_text):
-        text = domain_extract(url_text)
     #if only country text is given 
     #then country name will be the input query
-    elif company_text+url_text+country_text==country_text:
+    if company_text+url_text+country_text==country_text:
         text = country_text
  
     prediction, url_dict = get_company_details(text, country_text, url_text)

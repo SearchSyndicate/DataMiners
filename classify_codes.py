@@ -39,7 +39,7 @@ def classify_company(company_data,company):
                      If the information isn't present in the test, use "unknown" as the value."""
     answer=''            
     try:
-        api="OpenAI"
+        api="OpenAI 3"
         answer = openai_api(prompt)
         print(type(answer))
         print(api,answer)
