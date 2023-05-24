@@ -177,7 +177,9 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     output = {'Products':error, 'Services':error}
         if parse_llm_text(output)['Keywords']=='unknown':
             api="OpenAI 2"
-            output = openai_api(prompt)
+            output_temp = openai_api(prompt)
+            if "Quota exceeded" not in output_temp:
+                output=output_temp
             print(type(output))
             print(api, output)
     return output
@@ -277,6 +279,12 @@ def parse_llm_text(string):
     
     if "description" in string.lower():
         description_match = re.search("description :", string.lower())
+        if not description_match:
+            description_match = re.search("Description", string)
+        if not description_match:
+            description_match = re.search("description", string)
+        if not description_match:
+            description_match = re.search("'description':", string.lower())
         if description_match:
             description_str = string[description_match.end():products_match.start()].lstrip().rstrip()
             output["Description"] = description_str.rstrip(", ") if description_str !="" else "unknown"
