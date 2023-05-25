@@ -132,12 +132,16 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 try:
                     output, key_words = semantic_search(company, semantic_urls)
                     print("semantic_search", output)
+                    if output=='':
+                        output = serp_response(company)
                 except:
                     print("Crawler couldn't extract any text")
         except:
             try:
                 output, key_words = semantic_search(company, semantic_urls)
                 print("semantic_search", output)
+                if output=='':
+                    output = serp_response(company)
             except:
                 print("Crawler couldn't extract any text")
      
