@@ -16,6 +16,5 @@ summa
 pandas
 python-dotenv
 Requests
-bardapi
 Flask==2.3.2
 Flask-Cors==3.0.10

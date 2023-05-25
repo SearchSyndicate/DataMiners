@@ -15,10 +15,14 @@ from urls_info_retrive import domain_extract
 from hugchat import hugchat
 from semantic_search import semantic_search
 from GPTturboAPI import openai_api
+import os
+from dotenv import load_dotenv
 
 
 base_api_endpoint = "https://api.crunchbase.com/api/v4/"
-you_api_key="BPG53UN1C6PVAQ0R6A11PH4E9JF396YNXAI"
+# Load environment variables from .env file
+load_dotenv()
+you_api_key = os.environ.get('YOU_API_KEY')
 
 def get_headers():
     headers = {
@@ -124,11 +128,17 @@ def prompting(prompt,company,semantic_urls, helper=False):
             print(type(output))
             print(api, output)
             if "Quota exceeded" in output or len(output)<60:
+                try:
+                    output, key_words = semantic_search(company, semantic_urls)
+                    print("semantic_search", output)
+                except:
+                    print("Crawler couldn't extract any text")
+        except:
+            try:
                 output, key_words = semantic_search(company, semantic_urls)
                 print("semantic_search", output)
-        except:
-            output, key_words = semantic_search(company, semantic_urls)
-            print("semantic_search", output)
+            except:
+                print("Crawler couldn't extract any text")
      
     if output==None :
         
@@ -199,7 +209,7 @@ def get_products_from_text(text, company, country, semantic_urls):
         about {company}.
         You have to perform the following actions: 
             
-        1. Share the following informations about {company}:  
+        1. Share the following informations about {company} with help of given text below:  
             - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
             - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
             - list of all Keywords about the Products or Services of the {company} separated by commas.
@@ -222,7 +232,7 @@ def get_products_from_text(text, company, country, semantic_urls):
         about {company}.
         You have to perform the following actions: 
             
-        1. Share the following informations about {company}: 
+        1. Share the following informations about {company} with help of given text below: 
             - Extract a brief description about {company} in a sentence from the given text.
             - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
             - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.

@@ -13,11 +13,14 @@ import re
 import requests
 import pandas as pd
 import tldextract
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
 
-GOOGLE_SEARCH_ENGINE_ID = "44a2a67daad9a4e5b"
-#GOOGLE_SEARCH_ENGINE_ID =  "c51e2a70bf5174ccc"
-GOOGLE_API_KEY ="AIzaSyCJfES1K7d3DdK_SmzEicJ90LuMCPI3Low" 
-#GOOGLE_API_KEY = "AIzaSyCJKCZR7VFuRcW6GxmqcNVHJN9OxC1iLr0"
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+GOOGLE_SEARCH_ENGINE_ID = os.environ.get('GOOGLE_SEARCH_ENGINE_ID')
+
 
 ## function to extract info
 def domain_extract(url):
@@ -101,10 +104,10 @@ def extract_table(url):
 
 def get_product_images(company_name):
     """
-    Function to retrieve 5 image urls list from a given company name
+    Function to retrieve 4 image urls list from a given company name
     """
     search_url = "https://www.googleapis.com/customsearch/v1"
-    num_results = 5
+    num_results = 4
     search_type = "image"
     headers = {
         "Content-Type": "application/json"

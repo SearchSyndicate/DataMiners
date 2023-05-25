@@ -1,7 +1,13 @@
 import requests
+import os
+from dotenv import load_dotenv
+
 
 def openai_api(prompt):
-    api_key = "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"
+    # Load environment variables from .env file
+    load_dotenv()
+    api_key =  os.environ.get('OPENAI_API_KEY')
+   
     prompt = prompt.split()
     if len (prompt) > 4090:
         prompt = " ".join(prompt[0:4090])
@@ -62,6 +68,6 @@ if __name__ == '__main__':
         as the value.      
     text: '''{semantic_txt}'''
     """
-    for _ in range(5):
+    for _ in range(2):
         results = openai_api(prompt)
         print(results)

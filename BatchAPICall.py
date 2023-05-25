@@ -15,6 +15,7 @@ def batch_call(df, n=50, sec_break=10, image=''):
     Params: 
         1. n: no. of inputs to be taken
         2. sec_break: time break between 2 API calls
+        2. image: to chose whether image urls should be in output or not
     """
     df= df[:n]
     start_time = time.time()
