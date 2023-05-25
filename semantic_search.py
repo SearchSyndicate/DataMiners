@@ -56,52 +56,54 @@ def semantic_search_urls(extracted_url, query):
 # input will be the df get out of crawl function 
 # Define a function for semantic search
 def semantic_search_tags(list_text, query):
-    # Convert the extracted url to a dataset
-    dict_urls = {"tags": list_text}
-    dataset_url = Dataset.from_dict(dict_urls)
+    if list_text:
+        # Convert the extracted url to a dataset
+        dict_urls = {"tags": list_text}
+        dataset_url = Dataset.from_dict(dict_urls)
 
-    # Define a function for pooling the output of the model
-    def cls_pooling(model_output):
-        return model_output.last_hidden_state[:,0]
+        # Define a function for pooling the output of the model
+        def cls_pooling(model_output):
+            return model_output.last_hidden_state[:,0]
 
-    # Define a function for getting embeddings
-    def get_embeddings(tag):
-        encoded_input = tokenizer(tag, padding=True, truncation=True, return_tensors="pt")
-        encoded_input = {k: v for k,v in encoded_input.items()}
-        model_output = model(**encoded_input)
-        return cls_pooling(model_output)
+        # Define a function for getting embeddings
+        def get_embeddings(tag):
+            encoded_input = tokenizer(tag, padding=True, truncation=True, return_tensors="pt")
+            encoded_input = {k: v for k,v in encoded_input.items()}
+            model_output = model(**encoded_input)
+            return cls_pooling(model_output)
 
-    # Embed the dataset
-    embeddings_dataset = dataset_url.map(
-        lambda x: {"embeddings": get_embeddings(x["tags"]).cpu().detach().numpy()[0]}
-    )
-    embeddings_dataset.add_faiss_index(column="embeddings")
+        # Embed the dataset
+        embeddings_dataset = dataset_url.map(
+            lambda x: {"embeddings": get_embeddings(x["tags"]).cpu().detach().numpy()[0]}
+        )
+        embeddings_dataset.add_faiss_index(column="embeddings")
 
-    # Search for similar URLs
-    question = f"what is {query} products and services?"
-    question_embedding = get_embeddings([question]).cpu().detach().numpy()
-    scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=2)
+        # Search for similar URLs
+        question = f"what is {query} products and services?"
+        question_embedding = get_embeddings([question]).cpu().detach().numpy()
+        scores, samples = embeddings_dataset.get_nearest_examples("embeddings", question_embedding, k=2)
 
-    # Return the search results
-    return list(samples["tags"])
-
+        # Return the search results
+        return list(samples["tags"])
+    else:
+        return ""
 
 def handle_text(text, chunk_size=2000):
-   language = "en"
-   text_to_enc = []
-   for sub_text in text:
-    sub_text = " ".join(sub_text)
-    try:
-        language = detect(sub_text)
-    except Exception as e:
-        pass
-    if language != "en":
+    language = "en"
+    text_to_enc = []
+    for sub_text in text:
+        sub_text = " ".join(sub_text)
         try:
-            sub_text = aws_translation(sub_text)
+            language = detect(sub_text)
         except Exception as e:
             pass
-    text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
-   return text_to_enc
+        if language != "en":
+            try:
+                sub_text = aws_translation(sub_text)
+            except Exception as e:
+                pass
+        text_to_enc.extend([sub_text[i:i+chunk_size+100] for i in range(0, len(sub_text), chunk_size)])
+    return text_to_enc
 
 def clean_text(text):
     # remove newlines, tabs, and extra spaces
@@ -109,9 +111,9 @@ def clean_text(text):
     text = re.sub(r'\t+', ' ', text)
     text = re.sub(r' +', ' ', text)
     # remove URLs
-    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'http\S+', ' ', text)
     # remove punctuation
-    text = re.sub(r'[^\w\s]', '', text)
+    text = re.sub(r'[^\w\s]', ' ', text)
     # convert to lowercase
     #text = text.lower()
     return text
@@ -124,7 +126,6 @@ def get_semantic_urls(query, url = None):
     return semantic_urls
 
 def semantic_search(query, semantic_urls):
-    print(semantic_urls)
     output = crawl_se_level(semantic_urls)
     text_to_enc_p = handle_text(output["tag_text_p"])
     key_words = key_words_extraction(text_to_enc_p)
@@ -134,18 +135,14 @@ def semantic_search(query, semantic_urls):
     return semantic_text, key_words
         
 if __name__  == "__main__":
-    # query = "eBay use"
-    # semantic_urls = get_semantic_urls(query)
-    # semantic_txt, key_words = semantic_search(query,semantic_urls)
-    # output = extract_info(semantic_txt = semantic_txt, query=query)
-    # print(semantic_txt)
-
-    query = "eBay use"
-    semantic_urls = get_semantic_urls(query="Amazon")
-    semantic_txt, key_words = semantic_search(query="Amazon", semantic_urls = ['https://www.amazon.com/gp/css/homepage.html?ref=footer_ya'])
-    output = extract_info(semantic_txt = semantic_txt, query=query)
+    query = "bosch gemrany"
+    semantic_urls = get_semantic_urls(query)
+    print(semantic_urls)
+    semantic_txt, key_words = semantic_search(query,semantic_urls)
+    #output = extract_info(semantic_txt = semantic_txt, query=query)
     print(semantic_txt)
-    print(key_words)
+   
+   
    #tokenizer.save_vocabulary("/home/muhamad/Search_Engine_competition/DataMiners/models")
    #model.save_pretrained("/home/muhamad/Search_Engine_competition/DataMiners/models")
    # to load tokenizer "tokenizer = AutoTokenizer.from_pretrained("./models/tokenizer/")"

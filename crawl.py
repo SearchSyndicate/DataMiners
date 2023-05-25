@@ -22,7 +22,10 @@ div_list = []
 # # Start crawling from the starting URL
 def crawl_se_level(extracted_url):
   for url in extracted_url:
-    response = requests.get(url, headers=header)
+    try:
+      response = requests.get(url, headers=header)
+    except ConnectionError as e:
+      print("Connection Error:", e)
     if response.status_code == 200:
     # Parse the HTML content using BeautifulSoup
       soup = BeautifulSoup(response.content, "html.parser")
@@ -43,7 +46,10 @@ def crawl_se_level(extracted_url):
 
 def crawl(url):
   # Fetch the web page content
-  response = requests.get(url, headers=header)
+  try:
+    response = requests.get(url, headers=header)
+  except ConnectionError as e:
+    print("Connection Error:", e)
   if response.status_code == 200:
       # Parse the HTML content using BeautifulSoup
       soup = BeautifulSoup(response.content, "html.parser")
