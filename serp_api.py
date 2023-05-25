@@ -1,13 +1,17 @@
 import requests
 import json
-
+import os
+from dotenv import load_dotenv
+# Load environment variables from .env file
+load_dotenv()
+serp_api_key = os.environ.get('SERP_API_KEY')
 
 def serp_response(query):
     url = "https://google.serper.dev/search"
     payload = json.dumps({
     "q": query})
     headers = {
-    'X-API-KEY': '9dc856d842208a0d2b252e6af8b84aa8dd56d740',
+    'X-API-KEY': serp_api_key,
     'Content-Type': 'application/json'
     }
     response = requests.request("POST", url, headers=headers, data=payload)
@@ -30,26 +34,12 @@ def serp_response(query):
             snip += " "
     except: snip = ""
     
-    # retrive a wikibedia_link
-    try:
-        wiki_link = response_json["knowledgeGraph"]["descriptionLink"]
-        wiki_link = wiki_link.split(",")[0]
-    except: wiki_link = ""
-    
-    # that give us a products most of time
-    try:
-        for i in range(len(response_json["organic"][0]["sitelinks"])):
-            title_sitelink = response_json["organic"][0]["sitelinks"][i]["title"]
-    except: title_sitelink = ""
-    return com_type, descrabtion, snip, title_sitelink, wiki_link
+    return " ".join([com_type, descrabtion, snip])
 
 if __name__ == "__main__":
-    com_type, descrabtion, snip, title_sitelink, wiki_link = serp_response("twitter")
-    print(com_type)
-    print(descrabtion)
-    print(snip)
-    print(title_sitelink)
-    print(wiki_link) 
+    text = serp_response("twitter")
+    print(text)
+
     # com_text = get_wiki_text(output[-1])
     # print("###################################")
     # print(com_text)

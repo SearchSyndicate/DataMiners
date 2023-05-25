@@ -15,6 +15,7 @@ from urls_info_retrive import domain_extract
 from hugchat import hugchat
 from semantic_search import semantic_search
 from GPTturboAPI import openai_api
+from serp_api import serp_response
 import os
 from dotenv import load_dotenv
 
@@ -185,7 +186,8 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 except:
                     error = "Hugchat down"
                     output = {'Products':error, 'Services':error}
-        if parse_llm_text(output)['Keywords']=='unknown':
+        parsed_output = parse_llm_text(output)
+        if parsed_output['Keywords']=='unknown':
             api="OpenAI 2"
             output_temp = openai_api(prompt)
             if "Quota exceeded" not in output_temp:
@@ -202,55 +204,64 @@ def get_products_from_text(text, company, country, semantic_urls):
     helper_prompt = f"""Give a list of the products and services offered by {company}. 
                         Limit your words to only relevant words. """
     sample = prompting(helper_prompt, company, semantic_urls, helper=True)
-    
-    if text!=None:
-        prompt = f"""
-        Your task is to help a marketing team to give useful informations
-        about {company}.
-        You have to perform the following actions: 
+    def get_prompt():
+        if text!=None:
+            prompt = f"""
+            Your task is to help a marketing team to give useful informations
+            about {company}.
+            You have to perform the following actions: 
+                
+            1. Share the following informations about {company} with help of given text below:  
+                - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
+                - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
+                - list of all Keywords about the Products or Services of the {company} separated by commas.
+                  
+            2. You must identify atleast one item either from Products or Services.
+                There's no upper limit as long as they are relevant.
             
-        1. Share the following informations about {company} with help of given text below:  
-            - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of all Keywords about the Products or Services of the {company} separated by commas.
-              
-        2. You must identify atleast one item either from Products or Services.
-            There's no upper limit as long as they are relevant.
+            3. Make your response as accurate as possible without any explanation or notes.
         
-        3. Make your response as accurate as possible without any explanation or notes.
-    
-        4. Format your response only as one JSON object with 
-            only "Products", "Services" and "Keywords" as the keys. 
-            If the information isn't present in the test, use "unknown" as the value.
+            4. Format your response only as one JSON object with 
+                only "Products", "Services" and "Keywords" as the keys. 
+                If the information isn't present in the test, use "unknown" as the value.
+                
+            text: '''{text}'''
+            other helpful text: '''{sample}'''
+            """
+        else:
+            prompt = f"""
+            Your task is to help a marketing team to give useful informations
+            about {company}.
+            You have to perform the following actions: 
+                
+            1. Share the following informations about {company} with help of given text below: 
+                - Extract a brief description about {company} in a sentence from the given text.
+                - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
+                - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
+                - list of all Keywords about the Products or Services of the {company} separated by commas.
+                  
+            2. You must identify atleast one item either from Products or Services.
+                There's no upper limit as long as they are relevant.
             
-        text: '''{text}'''
-        other helpful text: '''{sample}'''
-        """
-    else:
-        prompt = f"""
-        Your task is to help a marketing team to give useful informations
-        about {company}.
-        You have to perform the following actions: 
-            
-        1. Share the following informations about {company} with help of given text below: 
-            - Extract a brief description about {company} in a sentence from the given text.
-            - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
-            - list of all Keywords about the Products or Services of the {company} separated by commas.
-              
-        2. You must identify atleast one item either from Products or Services.
-            There's no upper limit as long as they are relevant.
+            3. Make your response as accurate as possible without any explanation or notes.
         
-        3. Make your response as accurate as possible without any explanation or notes.
+            4. Format your response only as one JSON object with 
+                only "Description", "Products", "Services" and "Keywords" as the keys. 
+                If the information isn't present in the test, use "unknown" as the value.
+                
+            text: '''{sample}'''
+            """
+        return prompt
+    time.sleep(1)
+    output = prompting(get_prompt(), company, semantic_urls)
     
-        4. Format your response only as one JSON object with 
-            only "Description", "Products", "Services" and "Keywords" as the keys. 
-            If the information isn't present in the test, use "unknown" as the value.
-            
-        text: '''{sample}'''
-        """
-    time.sleep(2)
-    output = prompting(prompt, company, semantic_urls)
+    #taking care of edge case
+    parsed_output = parse_llm_text(output)
+    if ('unknown' in parsed_output['Services'].lower()) \
+        and ('unknown' in parsed_output['Products'].lower()):
+            text=None
+            sample = serp_response(company)
+            output = prompting(get_prompt(), company, semantic_urls)       
     return output
 
 def parse_llm_text(string):
