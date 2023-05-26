@@ -2,6 +2,9 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
+import string
+from bs4 import BeautifulSoup
+
 # Load environment variables from .env file
 load_dotenv()
 serp_api_key = os.environ.get('SERP_API_KEY')
@@ -33,13 +36,45 @@ def serp_response(query):
             snip += response_json["organic"][i]["snippet"]
             snip += " "
     except: snip = ""
+    try:
+        wiki_link = response_json["knowledgeGraph"]["descriptionLink"]
+        wiki_link = wiki_link.split(",")[0]
+    except: wiki_link = ""
     
-    return " ".join([com_type, descrabtion, snip])
+    # scrap wikipedia text
+    try:
+        text  = wiki_scrap(wiki_link)
+    except:
+        text = ""
+    
+    return " ".join([com_type, descrabtion, snip, text])
+
+def wiki_scrap(url):
+    text = ""
+    try: 
+        url_open = requests.get(url)
+    except: 
+        return text   
+    if url_open.status_code == 200:
+        soup = BeautifulSoup(url_open.content, 'html.parser')
+        details = soup('table', {'class': 'infobox'})
+        for i  in details:
+            h = i.find_all('tr')
+            for j in h:
+                heading = j.find_all('th')
+                details = j.find_all('td')
+                if heading is not None and details is not None:
+                    for x, y in zip(heading, details):
+                        text += x.text + ":" + y.text +"," + " " 
+            for i in range(1,2):
+                text += " " + soup('p')[i].text
+    return text
 
 if __name__ == "__main__":
+    # text = serp_response("twitter")
+    # print(text)
     text = serp_response("twitter")
     print(text)
-
     # com_text = get_wiki_text(output[-1])
     # print("###################################")
     # print(com_text)
