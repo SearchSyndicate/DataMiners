@@ -135,7 +135,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
             print("semantic_search", output)
             
             if not re.search('[a-zA-Z]', output) or len(output)<60:
-                output, url_link = serp_response(company)
+                output, url_link, _ = serp_response(company)
                 print("serp_response", output)
                 
         except:
@@ -235,7 +235,7 @@ def get_products_from_text(text, company, country, semantic_urls):
             other helpful text: '''{sample}'''
             """
         else:
-            sample_1, _ = serp_response(company)
+            sample_1, _, _ = serp_response(company)
             if sample in sample_1:
                 sample_1 = openai_api(helper_prompt)
             prompt = f"""
@@ -271,7 +271,7 @@ def get_products_from_text(text, company, country, semantic_urls):
         and ('unknown' in parsed_output['Products'].lower()):
             print("taking care of edge case")
             text=None
-            sample, url_link = serp_response(company)
+            sample, url_link, _ = serp_response(company)
             print(sample)
             output, url_link = prompting(get_prompt(sample), company, semantic_urls)   
             print(output, "final_output")
