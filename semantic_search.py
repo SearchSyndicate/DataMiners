@@ -12,15 +12,16 @@ from translation import aws_translation
 from translation import non_api_translation
 from huggingchat import key_words_extraction
 from langdetect import detect
+from serp_api import serp_response
 ##define module variable
 # create a semnetic search function to retrieve most relative urls
-try:
-    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-except:
-    model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
+#try:
+#    model_ckpt = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+#except:
+model_ckpt = "/home/muhamad/Search_Engine_competition/DataMiners/models"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
-
+    
 # relative urls
 def semantic_search_urls(extracted_url, query):
     # Convert the extracted url to a dataset
@@ -120,7 +121,10 @@ def clean_text(text):
 def get_semantic_urls(query, url = None):
     semantic_urls = []
     if not url:
-        url = get_url_from_name(query)
+        try:
+            url = get_url_from_name(query)
+        except:
+            output, url_link, url = serp_response(query)              
     semantic_urls.extend([url])
     extracted_url = crawl(url=url)
     init_semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)

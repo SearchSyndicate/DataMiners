@@ -21,6 +21,11 @@ def serp_response(query):
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     response_json = json.loads(response.text)
+    
+    # extract website_link
+    try:
+        website_link = response_json["knowledgeGraph"]["website"]
+    except: website_link = None
     # type of tech company
     try:
         com_type = response_json["knowledgeGraph"]["type"]
@@ -71,7 +76,7 @@ def serp_response(query):
                 text = non_api_translation(text)
         output_text.append(text)
     output = " ".join(output_text)
-    return output, url_link
+    return output, url_link, website_link
 
 def wiki_scrap(url):
     text = ""
