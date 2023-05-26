@@ -24,12 +24,13 @@ base_api_endpoint = "https://api.crunchbase.com/api/v4/"
 # Load environment variables from .env file
 load_dotenv()
 you_api_key = os.environ.get('YOU_API_KEY')
+crunchbase_api_key= os.environ.get('CRUNCH_BASE_API_KEY')
 
 def get_headers():
     headers = {
     "accept": "application/json",
     "content-type": "application/json",
-    "X-cb-user-key": "c72ba4be22ce7b9767ac7e5b88bdba07"
+    "X-cb-user-key": crunchbase_api_key
     }
     return headers
 
@@ -120,7 +121,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
     Prompts OpenAI 1st then in case of failure prompts Youchat
     and in case of failure in both, finally calls huggingchat 
     """
-    
+    url_link = ''
     output=None
     if helper:
         try:
@@ -133,7 +134,8 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     output, key_words = semantic_search(company, semantic_urls)
                     print("semantic_search", output)
                     if output=='':
-                        output = serp_response(company)
+                        output, url_link = serp_response(company)
+                        print("serp_response", output)
                 except:
                     print("Crawler couldn't extract any text")
         except:
@@ -141,7 +143,8 @@ def prompting(prompt,company,semantic_urls, helper=False):
                 output, key_words = semantic_search(company, semantic_urls)
                 print("semantic_search", output)
                 if output=='':
-                    output = serp_response(company)
+                    output, url_link = serp_response(company)
+                    print("serp_response", output)
             except:
                 print("Crawler couldn't extract any text")
      
@@ -194,14 +197,14 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     error = "Hugchat down"
                     output = {'Products':error, 'Services':error}
         parsed_output = parse_llm_text(output)
-        if parsed_output['Keywords']=='unknown':
+        if parsed_output['Keywords']=='unknown' or len(parsed_output['Keywords']<2):
             api="OpenAI 2"
             output_temp = openai_api(prompt)
             if "Quota exceeded" not in output_temp:
                 output=output_temp
             print(type(output))
             print(api, output)
-    return output
+    return output, url_link
 
 def get_products_from_text(text, company, country, semantic_urls):
     """
@@ -210,7 +213,7 @@ def get_products_from_text(text, company, country, semantic_urls):
     
     helper_prompt = f"""Give a list of the products and services offered by {company}. 
                         Limit your words to only relevant words. """
-    sample = prompting(helper_prompt, company, semantic_urls, helper=True)
+    sample, url_link = prompting(helper_prompt, company, semantic_urls, helper=True)
     def get_prompt():
         if text!=None:
             prompt = f"""
@@ -260,16 +263,16 @@ def get_products_from_text(text, company, country, semantic_urls):
             """
         return prompt
     time.sleep(1)
-    output = prompting(get_prompt(), company, semantic_urls)
+    output, url_link = prompting(get_prompt(), company, semantic_urls)
     
     #taking care of edge case
     parsed_output = parse_llm_text(output)
     if ('unknown' in parsed_output['Services'].lower()) \
         and ('unknown' in parsed_output['Products'].lower()):
             text=None
-            sample = serp_response(company)
-            output = prompting(get_prompt(), company, semantic_urls)       
-    return output
+            sample, url_link = serp_response(company)
+            output, url_link = prompting(get_prompt(), company, semantic_urls)       
+    return output, url_link
 
 def parse_llm_text(string):
     output={}

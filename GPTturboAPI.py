@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 def openai_api(prompt):
     # Load environment variables from .env file
     load_dotenv()
-    api_key =  os.environ.get('OPENAI_API_KEY')
+    api_key = os.environ.get('OPENAI_API_KEY')
    
     prompt = prompt.split()
     if len (prompt) > 4090:

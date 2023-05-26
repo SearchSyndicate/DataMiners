@@ -46,7 +46,12 @@ def serp_response(query):
     except:
         text = ""
     
-    return " ".join([com_type, descrabtion, snip, text])
+    #image link
+    try:
+        url_link = response_json["knowledgeGraph"]["imageUrl"]
+    except: url_link = ""
+    
+    return " ".join([com_type, descrabtion, snip, text]), url_link
 
 def wiki_scrap(url):
     text = ""
@@ -72,7 +77,7 @@ def wiki_scrap(url):
 if __name__ == "__main__":
     # text = serp_response("twitter")
     # print(text)
-    text = serp_response("twitter")
+    text, url_link = serp_response("Innoscripta ag")
     print(text)
     # com_text = get_wiki_text(output[-1])
     # print("###################################")

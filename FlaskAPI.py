@@ -70,7 +70,7 @@ def get_company_details(api_query, country, url_text):
         company_description = data['entities'][0]['properties']['short_description']
         related_urls = get_semantic_urls(company_name)
         status = 4
-        company_products = get_products_from_text(company_description, company_name, country, related_urls)
+        company_products, image_url_link = get_products_from_text(company_description, company_name, country, related_urls)
         status = 6
         company_codes = classify_company(removeSpecialChars(company_products),company_name)
         print(company_codes,"company_codes")
@@ -88,7 +88,7 @@ def get_company_details(api_query, country, url_text):
             related_urls = get_semantic_urls(api_query)
             
         status = 6
-        company_products = get_products_from_text(None, api_query, country, related_urls)
+        company_products, image_url_link = get_products_from_text(None, api_query, country, related_urls)
         status = 7
         company_codes = classify_company(removeSpecialChars(company_products),api_query)
         print(company_codes,"company_codes")
@@ -103,7 +103,7 @@ def get_company_details(api_query, country, url_text):
     url_dict = {"Related URLs":list(set(related_urls))[:4]}
     status = 9
    
-    return company_details, url_dict
+    return company_details, url_dict, image_url_link
 
 @app.route('/')
 def home():
@@ -154,11 +154,14 @@ def predict():
     if company_text+url_text+country_text==country_text:
         text = country_text
  
-    prediction, url_dict = get_company_details(text, country_text, url_text)
+    prediction, url_dict, image_url_link = get_company_details(text, country_text, url_text)
     print(url_dict,"url_dict")    
     image_urls=[]
     if search_type=='With Images' or image_choice:
-        image_urls = get_product_images(prediction["Name"])[:4]
+        if image_url_link:
+            image_urls = [image_url_link] + get_product_images(prediction["Name"])[:3]
+        else:
+            image_urls = get_product_images(prediction["Name"])[:4]
     if ui:
         final_result= render_template('result.html',prediction = prediction,image_urls=image_urls, url_dict=url_dict)
     else:
