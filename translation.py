@@ -43,7 +43,7 @@ def aws_translation(input_text):
 
 def non_api_translation(input_text):
     language = detect(input_text)
-
+    translation = input_text
     # Print the detected language code
     if language == "en":
         return input_text
@@ -54,6 +54,7 @@ def non_api_translation(input_text):
         #Print the translated string
         print(f"Detected input language: {language}")
         print(f"Translated text: {translation}")
+        return translation
 
 if __name__ == "__main__":
     try:

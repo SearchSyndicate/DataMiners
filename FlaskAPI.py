@@ -62,7 +62,7 @@ def get_company_details(api_query, country, url_text):
     
     url_dict={}
     if len(data['entities'])>0 and\
-        name_comparison_score(data['entities'][0]['properties']['identifier']['value'],api_query)>0.25:
+        name_comparison_score(data['entities'][0]['properties']['identifier']['value'],api_query)>0.45:
         status = 1
         company_name = get_main_company_name(data['entities'][0]['properties']['identifier']['value'])
         status = 2
@@ -124,6 +124,7 @@ def predict():
     predict?company=Amazon&country=USA&url=https://www.amazon.com/&image=""")
     ui = False
     image_choice=''
+    url_dict=[]
     #inputs
     try:
         company_text = request.form['company_text']

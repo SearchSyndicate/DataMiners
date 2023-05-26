@@ -125,58 +125,48 @@ def prompting(prompt,company,semantic_urls, helper=False):
     output=None
     if helper:
         try:
+            output, key_words = semantic_search(company, semantic_urls)
+            print("semantic_search", output)
+            
+            if not re.search('[a-zA-Z]', output) or len(output)<60:
+                output, url_link = serp_response(company)
+                print("serp_response", output)
+                
+        except:
+            print("Crawler or serp couldn't extract any text")
+            output, key_words = semantic_search(company, semantic_urls)
+            print("semantic_search", output)
+        
+    if output==None :
+        try:
             api="OpenAI 1"
             output = openai_api(prompt)
             print(type(output))
             print(api, output)
-            if "Quota exceeded" in output or len(output)<60:
-                try:
-                    output, key_words = semantic_search(company, semantic_urls)
-                    print("semantic_search", output)
-                    if output=='':
-                        output, url_link = serp_response(company)
-                        print("serp_response", output)
-                except:
-                    print("Crawler couldn't extract any text")
         except:
+            api="Youchat"
+            chat = f"{api} API down"
+            response =requests.get(f"https://api.betterapi.net/youchat?inputs={prompt}&key={you_api_key}",
+                               headers=get_headers())
             try:
-                output, key_words = semantic_search(company, semantic_urls)
-                print("semantic_search", output)
-                if output=='':
-                    output, url_link = serp_response(company)
-                    print("serp_response", output)
+                chat= json.loads(response.text)
             except:
-                print("Crawler couldn't extract any text")
-     
-    if output==None :
-        
-        api="Youchat"
-        chat = f"{api} API down"
-        response =requests.get(f"https://api.betterapi.net/youchat?inputs={prompt}&key={you_api_key}",
-                           headers=get_headers())
-        try:
-            chat= json.loads(response.text)
-        except:
-            chat = {'generated_text':'error'}
-        if response.status_code==200 or 'error' not in str(chat['generated_text']):
-            if 'sorry' not in str(chat): 
-                output = chat['generated_text']
-                print(type(chat))
-                print(api, output)
-                try:
-                    output = json.loads(re.search('({.+})', ' '.join(output.split('\n')).strip()).group(0).replace("'", '"'))
-                except:
-                    print(f"JSON not returnd with {api}")
-                if not helper and not is_json(output):
-                    error = f"{chat['generated_text']} error occurred"
-                    output = {'Products':error, 'Services':error, 'Keywords':[]}
+                chat = {'generated_text':'error'}
+            if response.status_code==200 or 'error' not in str(chat['generated_text']):
+                if 'sorry' not in str(chat): 
+                    output = chat['generated_text']
+                    print(type(chat))
                     print(api, output)
-        else:
-            output="{'Keywords':''}"
+                    try:
+                        output = json.loads(re.search('({.+})', ' '.join(output.split('\n')).strip()).group(0).replace("'", '"'))
+                    except:
+                        print(f"JSON not returnd with {api}")
+            else:
+                output="{'Keywords':''}"
         if output!=None:
-            output =  {k.lower(): v for k, v in eval(str(output)).items()}
             keywords_len=0  
             try:  
+                output =  {k.lower(): v for k, v in eval(str(output)).items()}
                 if is_json(output):
                     keywords_len = len(eval(str((output)))['keywords'].split(","))
             except:
@@ -210,7 +200,7 @@ def get_products_from_text(text, company, country, semantic_urls):
     """
     Function to extract Product/Services from a text
     """
-    
+    company = removeSpecialChars(get_main_company_name(company))
     helper_prompt = f"""Give a list of the products and services offered by {company}. 
                         Limit your words to only relevant words. """
     sample, url_link = prompting(helper_prompt, company, semantic_urls, helper=True)
@@ -218,10 +208,10 @@ def get_products_from_text(text, company, country, semantic_urls):
         if text!=None:
             prompt = f"""
             Your task is to help a marketing team to give useful informations
-            about {company}.
+            about {company} only from a given text.
             You have to perform the following actions: 
                 
-            1. Share the following informations about {company} with help of given text below:  
+            1. Share the following informations about {company} with help of only given text below:  
                 - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Keywords about the Products or Services of the {company} separated by commas.
@@ -240,12 +230,14 @@ def get_products_from_text(text, company, country, semantic_urls):
             """
         else:
             sample_1, _ = serp_response(company)
+            if sample==sample_1:
+                sample_1=''
             prompt = f"""
             Your task is to help a marketing team to give useful informations
-            about {company}.
+            about {company} only from a given text.
             You have to perform the following actions: 
                 
-            1. Share the following informations about {company} with help of given text below: 
+            1. Share the following informations about {company} with help of only  given text below: 
                 - Extract a brief description about {company} in a sentence from the given text.
                 - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.

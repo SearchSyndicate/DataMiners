@@ -3,6 +3,9 @@ import json
 import os
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
+from translation import aws_translation
+from translation import non_api_translation
+from langdetect import detect
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,7 +54,24 @@ def serp_response(query):
         url_link = response_json["knowledgeGraph"]["imageUrl"]
     except: url_link = ""
     
-    return " ".join([com_type, descrabtion, snip, text]), url_link
+    output = " ".join([com_type, descrabtion, snip, text])
+    #translating output text
+    output_text=[]    
+    for text in output.split("..."):
+        try:
+            language = detect(text)
+        except Exception as e:
+            print(e)
+            language = "en"
+        if language != "en":
+            try:
+                text = aws_translation(text)
+            except Exception as e:
+                print(e)
+                text = non_api_translation(text)
+        output_text.append(text)
+    output = " ".join(output_text)
+    return output, url_link
 
 def wiki_scrap(url):
     text = ""
@@ -77,7 +97,7 @@ def wiki_scrap(url):
 if __name__ == "__main__":
     # text = serp_response("twitter")
     # print(text)
-    text, url_link = serp_response("Innoscripta ag")
+    text, url_link = serp_response("Horsch GmbH & Co. KG")
     print(text)
     # com_text = get_wiki_text(output[-1])
     # print("###################################")
