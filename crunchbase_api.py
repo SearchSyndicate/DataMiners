@@ -151,8 +151,11 @@ def prompting(prompt,company,semantic_urls, helper=False):
         chat = f"{api} API down"
         response =requests.get(f"https://api.betterapi.net/youchat?inputs={prompt}&key={you_api_key}",
                            headers=get_headers())
-        chat= json.loads(response.text)
-        if response.status_code==200 or 'error' not in str(type(chat['generated_text'])):
+        try:
+            chat= json.loads(response.text)
+        except:
+            chat = {'generated_text':'error'}
+        if response.status_code==200 or 'error' not in str(chat['generated_text']):
             if 'sorry' not in str(chat): 
                 output = chat['generated_text']
                 print(type(chat))
