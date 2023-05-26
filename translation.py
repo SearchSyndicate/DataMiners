@@ -59,6 +59,6 @@ def non_api_translation(input_text):
 if __name__ == "__main__":
     try:
     	output = aws_translation("Je voudrais jouer avec Ahmed.")
-    except:
-        non_api_translation("j'ai le pizza")
+    except Exception as e:
+	non_api_translation("j'ai le pizza")
         

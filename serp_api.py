@@ -62,7 +62,7 @@ def serp_response(query):
     output = " ".join([com_type, descrabtion, snip, text])
     #translating output text
     output_text=[]    
-    for text in output.split("..."):
+    for text in output.split("."):
         try:
             language = detect(text)
         except Exception as e:

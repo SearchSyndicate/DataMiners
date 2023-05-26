@@ -17,6 +17,7 @@ from semantic_search import semantic_search
 from GPTturboAPI import openai_api
 from serp_api import serp_response
 import os
+import unicodedata
 from dotenv import load_dotenv
 
 
@@ -38,6 +39,11 @@ def removeSpecialChars(string):
     clean_string = re.sub(r"[^a-zA-Z0-9,'./:-]+", ' ', str(string)).strip()
     clean_string = clean_string.replace("key :","").replace(", value :",":").replace("/u","").replace('&amp;','')
     return clean_string
+
+def removeAscendingChar(string):
+    #converts Accented characters into english characters
+    string=unicodedata.normalize('NFKD', str(string)).encode('ascii', 'ignore').decode('utf-8', 'ignore')
+    return string
 
 def name_comparison_score(name1,name2):
 
@@ -137,7 +143,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
             output, key_words = semantic_search(company, semantic_urls)
             print("semantic_search", output)
         
-    if output==None :
+    if output==None and not helper:
         try:
             api="OpenAI 1"
             output = openai_api(prompt)
@@ -166,7 +172,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
         if output!=None:
             keywords_len=0  
             try:  
-                output =  {k.lower(): v for k, v in eval(str(output)).items()}
+                output = {k.lower(): v for k, v in eval(str(output)).items()}
                 if is_json(output):
                     keywords_len = len(eval(str((output)))['keywords'].split(","))
             except:
@@ -187,7 +193,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     error = "Hugchat down"
                     output = {'Products':error, 'Services':error}
         parsed_output = parse_llm_text(output)
-        if parsed_output['Keywords']=='unknown' or len(parsed_output['Keywords'])<2:
+        if parsed_output['Keywords']=='unknown' or len(parsed_output['Keywords'].split(","))<2:
             api="OpenAI 2"
             output_temp = openai_api(prompt)
             if "Quota exceeded" not in output_temp:
@@ -204,14 +210,14 @@ def get_products_from_text(text, company, country, semantic_urls):
     helper_prompt = f"""Give a list of the products and services offered by {company}. 
                         Limit your words to only relevant words. """
     sample, url_link = prompting(helper_prompt, company, semantic_urls, helper=True)
-    def get_prompt():
+    def get_prompt(sample):
         if text!=None:
             prompt = f"""
             Your task is to help a marketing team to give useful informations
-            about {company} only from a given text.
+            about {company} from a given text.
             You have to perform the following actions: 
                 
-            1. Share the following informations about {company} with help of only given text below:  
+            1. Share the following informations about {company} with help of given text below:  
                 - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Keywords about the Products or Services of the {company} separated by commas.
@@ -230,14 +236,14 @@ def get_products_from_text(text, company, country, semantic_urls):
             """
         else:
             sample_1, _ = serp_response(company)
-            if sample==sample_1:
-                sample_1=''
+            if sample in sample_1:
+                sample_1 = openai_api(helper_prompt)
             prompt = f"""
             Your task is to help a marketing team to give useful informations
-            about {company} only from a given text.
+            about {company} from a given text.
             You have to perform the following actions: 
                 
-            1. Share the following informations about {company} with help of only  given text below: 
+            1. Share the following informations about {company} with help of given text below: 
                 - Extract a brief description about {company} in a sentence from the given text.
                 - list of all Products sold by {company} across {country if country !="" else "the world"} separated by commas.
                 - list of all Services offered by {company} across {country if country !="" else "the world"} separated by commas.
@@ -257,19 +263,23 @@ def get_products_from_text(text, company, country, semantic_urls):
             """
         return prompt
     time.sleep(1)
-    output, url_link = prompting(get_prompt(), company, semantic_urls)
+    output, url_link = prompting(get_prompt(sample), company, semantic_urls)
     
     #taking care of edge case
     parsed_output = parse_llm_text(output)
     if ('unknown' in parsed_output['Services'].lower()) \
         and ('unknown' in parsed_output['Products'].lower()):
+            print("taking care of edge case")
             text=None
             sample, url_link = serp_response(company)
-            output, url_link = prompting(get_prompt(), company, semantic_urls)       
+            print(sample)
+            output, url_link = prompting(get_prompt(sample), company, semantic_urls)   
+            print(output, "final_output")
     return output, url_link
 
 def parse_llm_text(string):
     output={}
+    string = removeAscendingChar(string)
     string = removeSpecialChars(string)
     products_str=services_str=keywords_str=''
     products_match = re.search("products :", string.lower())
