@@ -2,7 +2,6 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
-import string
 from bs4 import BeautifulSoup
 
 # Load environment variables from .env file
