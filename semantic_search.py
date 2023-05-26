@@ -21,7 +21,6 @@ except:
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt, model_max_length=512)
 model = AutoModel.from_pretrained(model_ckpt)
 
-
 # relative urls
 def semantic_search_urls(extracted_url, query):
     # Convert the extracted url to a dataset
@@ -119,11 +118,14 @@ def clean_text(text):
     return text
 
 def get_semantic_urls(query, url = None):
+    semantic_urls = []
     if not url:
         url = get_url_from_name(query)
+    semantic_urls.extend([url])
     extracted_url = crawl(url=url)
-    semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
-    return semantic_urls
+    init_semantic_urls = semantic_search_urls(extracted_url=extracted_url, query=query)
+    semantic_urls.extend(init_semantic_urls)
+    return list(dict.fromkeys(semantic_urls))
 
 def semantic_search(query, semantic_urls):
     output = crawl_se_level(semantic_urls)
@@ -135,8 +137,8 @@ def semantic_search(query, semantic_urls):
     return semantic_text, key_words
         
 if __name__  == "__main__":
-    query = "bosch gemrany"
-    semantic_urls = get_semantic_urls(query)
+    query = "Horsch GmbH & Co. KG"
+    semantic_urls = get_semantic_urls(query, "https://www.horsch.de/")
     print(semantic_urls)
     semantic_txt, key_words = semantic_search(query,semantic_urls)
     #output = extract_info(semantic_txt = semantic_txt, query=query)

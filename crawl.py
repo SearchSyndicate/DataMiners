@@ -13,14 +13,14 @@ header = {
        "User-Agent": user_agent,
       "X-Requested-With": "XMLHttpRequest"}
 visited_urls = set()
-extracted_url = []
-extract_domain = []
-para_list = []
-div_list = []
+
 # Define a function to crawl a URL and extract relevant information
 
 # # Start crawling from the starting URL
 def crawl_se_level(extracted_url):
+  extract_domain = []
+  para_list = []
+  div_list = []
   for url in extracted_url:
     try:
       response = requests.get(url, headers=header)
@@ -28,23 +28,27 @@ def crawl_se_level(extracted_url):
       print("Connection Error:", e)
     if response.status_code == 200:
     # Parse the HTML content using BeautifulSoup
-      soup = BeautifulSoup(response.content, "html.parser")
-      para_dict = get_tag_text(url=url, page_source_text=soup, tag_text="p")
-      div_dict = get_tag_text(url=url, page_source_text=soup, tag_text="div")
-      extract_domain.append(domain_extract(url))
-      # check if the html page has a <p> tag
-      if para_dict:
-        para_list.append(para_dict)
-      # if not hav <p> tag we will append text under <div> tag
-      else:
-        para_list.append(div_dict)
-      
-      div_list.append(div_dict)
-    # Add the URL to the set of visited URLs
+      try:
+        soup = BeautifulSoup(response.content, "html.parser")
+        para_dict = get_tag_text(url=url, page_source_text=soup, tag_text="p")
+        div_dict = get_tag_text(url=url, page_source_text=soup, tag_text="div")
+        extract_domain.append(domain_extract(url))
+        # check if the html page has a <p> tag
+        if para_dict:
+          para_list.append(para_dict)
+        # if not hav <p> tag we will append text under <div> tag
+        else:
+          para_list.append(div_dict)
+        
+        div_list.append(div_dict)
+        # Add the URL to the set of visited URLs
+      except:
+        continue
   output = {"domain":extract_domain, "tag_text_p":para_list, "tag_text_div":div_list}
   return output
 
 def crawl(url):
+  extracted_url = []
   # Fetch the web page content
   try:
     response = requests.get(url, headers=header)
