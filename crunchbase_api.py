@@ -197,7 +197,7 @@ def prompting(prompt,company,semantic_urls, helper=False):
                     error = "Hugchat down"
                     output = {'Products':error, 'Services':error}
         parsed_output = parse_llm_text(output)
-        if parsed_output['Keywords']=='unknown' or len(parsed_output['Keywords']<2):
+        if parsed_output['Keywords']=='unknown' or len(parsed_output['Keywords'])<2:
             api="OpenAI 2"
             output_temp = openai_api(prompt)
             if "Quota exceeded" not in output_temp:
@@ -239,6 +239,7 @@ def get_products_from_text(text, company, country, semantic_urls):
             other helpful text: '''{sample}'''
             """
         else:
+            sample_1, _ = serp_response(company)
             prompt = f"""
             Your task is to help a marketing team to give useful informations
             about {company}.
@@ -260,6 +261,7 @@ def get_products_from_text(text, company, country, semantic_urls):
                 If the information isn't present in the test, use "unknown" as the value.
                 
             text: '''{sample}'''
+            other helpful text:'''{sample_1}'''
             """
         return prompt
     time.sleep(1)
