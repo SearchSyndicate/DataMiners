@@ -1,8 +1,11 @@
 # DataMiners
 ### **Global Data Search Engine**<br>
-pip install -r requirements.txt
+
+Link for full documentation: [Google Doc](https://docs.google.com/document/d/15mXD-UCuRwpNOSjXQukNDeK-QAIRBs1J-fqJyQ4aQa4/edit?usp=sharing)<br>
+
 
 #### :cloud: Deployment Instructions
+pip install -r requirements.txt<br><br>
 With Docker: <br>
 * Ensure docker engine is running then in a terminal, go to DataMiners directory and run:<br>
 `docker compose up` <br>
